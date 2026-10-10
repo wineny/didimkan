@@ -19,18 +19,11 @@ type Props = {
   nextItems: CourseView[];
 };
 
-function tag(n: number, st: Stair): string {
-  if (n === st) return `${n}단 · 지금 여기`;
-  if (n === st + 1) return `${n}단 · 다음 칸`;
-  return `${n}단`;
-}
-
-function Check() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+/** 계단 칸 위의 작은 글자: 지금 칸은 「지금 여기」, 바로 위 칸은 「다음 칸」 */
+function tag(n: number, st: Stair): string | null {
+  if (n === st) return "지금 여기";
+  if (n === st + 1) return "다음 칸";
+  return null;
 }
 
 /** 큰 글자 카드 한 장: 칸 이름 + 강좌 1개 + 「더 보기」 */
@@ -92,7 +85,7 @@ function BigCard({
 }
 
 /**
- * 계단 스테퍼. 일반: 원 3개 + 선 + 카드 3장(data-step 3개).
+ * 계단 스테퍼. 일반: 높이가 다른 3칸 계단(data-step 3개). 지금 칸은 테라코타 옅은 면, 다음 칸은 보조 면.
  * 크게 보기(html[data-big]): 지금 칸·다음 칸 두 장을 세로로 쌓은 카드(data-step 2개).
  * 서버 렌더는 항상 일반, 마운트 뒤 data-big 을 보고 바꾼다.
  */
@@ -115,23 +108,24 @@ export default function Stepper({ st, nowItems, nextItems }: Props) {
     );
   }
 
-  const progress = `${((st - 1) / 2) * 100}%`;
   return (
-    <div
-      className="stp"
-      style={{ "--p": progress } as React.CSSProperties}
-      aria-label={`3단 중 ${st}단이 지금 여기${st < 3 ? `, ${st + 1}단이 다음 칸` : ""}`}
-    >
-      <div className="stp-axis" />
+    <div className="stairs" aria-label={`3단 중 ${st}단이 지금 여기${st < 3 ? `, ${st + 1}단이 다음 칸` : ""}`}>
       {([1, 2, 3] as const).map((n) => {
         const now = n === st;
+        const k = tag(n, st);
         return (
-          <div key={n} className="stp-mk" data-step={n} {...(now ? { "data-now": "true" } : {})}>
-            <div className={now ? "stp-dot cur" : n < st ? "stp-dot done" : "stp-dot nxt"}>{n < st && <Check />}</div>
-            <div className={now ? "stp-card on" : "stp-card"}>
-              <div className="t">{tag(n, st)}</div>
-              <div className="d">{STEP_LABELS[n]}</div>
-            </div>
+          <div
+            key={n}
+            className={`step s${n}${now ? " on" : n === st + 1 ? " nx" : ""}`}
+            data-step={n}
+            {...(now ? { "data-now": "true" } : {})}
+          >
+            <span className="n">
+              {n}
+              <small>단</small>
+            </span>
+            {k && <span className="k">{k}</span>}
+            <span className="t">{STEP_LABELS[n]}</span>
           </div>
         );
       })}

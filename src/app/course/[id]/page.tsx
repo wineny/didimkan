@@ -98,41 +98,34 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
       <main className="c-main">
         <div className="body">
           <Link href={backHref(sp)} className="c-back" aria-label="목록으로 돌아가기">
-            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span>목록</span>
           </Link>
 
-          <div className={`hero c-hero${photo ? "" : " nophoto"}`}>
-            {photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
+          {photo ? (
+            <figure className="c-cover">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/cat/${photo}.jpg`} alt="" />
-            ) : null}
-            <div className="scrim" />
-            <div className="txt">
-              <h1 className="ht" style={{ margin: 0 }}>{c.title}</h1>
-              {heroSub ? <div className="hs">{heroSub}</div> : null}
-            </div>
-          </div>
-          <p className="meta c-meta">
+            </figure>
+          ) : null}
+          <h1 className="c-title">{c.title}</h1>
+          {heroSub ? <p className="c-where">{heroSub}</p> : null}
+          <p className="c-src">
             {sourceName(c.source)} · {korDate(c.collectedAt)} 수집
           </p>
 
-          <InfoGrid
-            cells={cells}
-            footer={
-              <p className="signal c-signal">
-                <b>설명에서 찾은 문턱 신호</b> · {quote ? `“${quote}”` : NO_SIGNAL}
-              </p>
-            }
-          />
+          <InfoGrid cells={cells} />
 
-          <section className="c-apply" aria-label="접수">
-            <div className="sec">접수</div>
-            <div className="c-apply-row">
-              <span className="dday">{pill}</span>
-            </div>
+          <section className="c-sect" aria-labelledby="c-h-signal">
+            <h2 id="c-h-signal">설명에서 찾은 문턱 신호</h2>
+            <p>{quote ? `“${quote}”` : NO_SIGNAL}</p>
+          </section>
+
+          <section className="c-sect c-apply" aria-labelledby="c-h-apply">
+            <h2 id="c-h-apply">접수</h2>
+            <p className="c-big">{pill}</p>
             {st.isEstimate ? (
               <p className="c-note">
                 {ESTIMATE_NOTE}
@@ -154,34 +147,35 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
             {lottery ? <p className="c-note">{LOTTERY_NOTE}</p> : null}
           </section>
 
-          <div className="rev">
-            <div className="hd">후기</div>
-            <div className="q">
-              <div className="say">아직 후기가 없어요</div>
-            </div>
-          </div>
+          <section className="c-sect" aria-labelledby="c-h-rev">
+            <h2 id="c-h-rev">후기</h2>
+            <p>아직 후기가 없어요</p>
+          </section>
 
-          {tel ? (
-            <a className="c-tel" href={tel}>
-              <span>기관에 전화하기</span>
-              <b>{c.phone}</b>
-            </a>
-          ) : always ? (
-            <p className="c-note c-nophone" data-always-nophone>
-              언제든 동에 전화하거나 들르면 됩니다 · {NO_PHONE}
-            </p>
-          ) : (
-            <p className="c-note c-nophone">{NO_PHONE}</p>
-          )}
+          <section className="c-sect" aria-labelledby="c-h-tel">
+            <h2 id="c-h-tel">기관에 전화하기</h2>
+            {tel ? (
+              <a className="c-tel" href={tel}>
+                {c.phone}
+              </a>
+            ) : always ? (
+              <p className="c-note" data-always-nophone>
+                언제든 동에 전화하거나 들르면 됩니다 · {NO_PHONE}
+              </p>
+            ) : (
+              <p className="c-note">{NO_PHONE}</p>
+            )}
+          </section>
         </div>
 
         <div className="c-acts">
           {siteUrl ? (
             <a className="sbtn" data-apply href={siteUrl} target="_blank" rel="noopener noreferrer">
-              {org}에서 신청하기
-              <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
-                <path d="M8 4H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3M11 4h5v5M16 4l-7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <span>
+                {org}에서 <span className="c-nw">신청하기<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M8 4H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3M11 4h5v5M16 4l-7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg></span>
+              </span>
             </a>
           ) : (
             <p className="c-note c-noapply">신청은 기관에 전화로</p>

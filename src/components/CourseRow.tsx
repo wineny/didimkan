@@ -14,6 +14,8 @@ export type CourseView = {
   fee: string;
   capacity: string | null;
   dday: string;
+  /** 접수 전·접수 중·연중이면 true (테라코타 칩), 지난 회차·확인 안 됨이면 false (옅은 칩) */
+  ddayOn: boolean;
   reason: string;
   href: string;
   collectedAt: string;
@@ -94,6 +96,7 @@ export function toView(c: CourseWithStatus, query: string): CourseView {
     fee: feeLabel(c.feeWon, c.isFree, c.feePeriod),
     capacity: c.capacity == null ? null : `${c.capacity}명`,
     dday: c.ddayLabel,
+    ddayOn: c.status.status === "before" || c.status.status === "open" || c.status.status === "always",
     reason: c.stairReason ?? capacityHint(c.capacity) ?? "",
     href: `/course/${c.id}?${query}`,
     collectedAt: c.collectedAt,
@@ -101,44 +104,50 @@ export function toView(c: CourseWithStatus, query: string): CourseView {
   };
 }
 
-/** 「출처 · 수집일」 한 줄용. 사진이 없으면(분야 없음) AI 이미지 문구는 뺀다. */
+/** 「출처 · 수집일」 한 줄용 (홈 대표 강좌). 대표 강좌는 사진을 싣지 않으므로 AI 이미지 문구는 화면 아래 줄에 둔다. */
 export function sourceLine(v: CourseView): string {
   const [, m, d] = v.collectedAt.split("-").map(Number);
-  const ai = photoOf(v.category) ? " · AI 생성 시범 이미지" : "";
-  return `${v.source} · ${m}월 ${d}일 수집${ai}`;
+  return `${v.source} · ${m}월 ${d}일 수집`;
 }
 
-/** 목록 한 줄: 제목 · 센터 · 요일시간 · 접수 · 이유. 구분선 행. thumb 가 있으면 오른쪽에 사진. */
+/**
+ * 홈 목록 카드 (A2): 번호 · 제목 · 센터 · 요일시간 · 칩(수강료·정원 / 접수) · 이유(테라코타 세로선).
+ * thumb.src 가 있으면(다음 칸) 사진을 위에 두고 이유는 사진 설명으로 붙인다. 글자는 사진 아래.
+ */
 export default function CourseRow({
   v,
+  no,
   label,
   thumb,
 }: {
   v: CourseView;
+  no?: number;
   label?: string;
   thumb?: { src: string | null };
 }) {
+  const photo = thumb?.src ?? null;
   return (
-    <Link href={v.href} className="crow" data-course>
-      <span className="crow-tx">
-        {label && <span className="crow-lab">{label}</span>}
-        <span className="crow-t">{v.title}</span>
-        <span className="crow-m">
-          {v.institution} · {v.when}
+    <Link href={v.href} className={photo ? "crow crow-photo" : "crow"} data-course>
+      {no != null && <span className="crow-no">{String(no).padStart(2, "0")}</span>}
+      {photo && (
+        <span className="crow-ph">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photo} alt="" />
+          {v.reason && <span className="crow-why">{v.reason}</span>}
         </span>
-        <span className="crow-m">
+      )}
+      {label && <span className="crow-lab">{label}</span>}
+      <span className="crow-t">{v.title}</span>
+      <span className="crow-m">{v.institution}</span>
+      <span className="crow-m">{v.when}</span>
+      <span className="crow-tags">
+        <span className="chip off">
           {v.fee}
-          {v.capacity ? ` · ${v.capacity}` : ""} · {v.dday}
+          {v.capacity ? ` · ${v.capacity}` : ""}
         </span>
-        {v.reason && <span className="crow-why">{v.reason}</span>}
+        <span className={v.ddayOn ? "chip" : "chip off"}>{v.dday}</span>
       </span>
-      {thumb &&
-        (thumb.src ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="th crow-th" src={thumb.src} alt="" />
-        ) : (
-          <span className="th crow-th crow-th-plain" aria-hidden="true" />
-        ))}
+      {!photo && v.reason && <span className="crow-why">{v.reason}</span>}
     </Link>
   );
 }

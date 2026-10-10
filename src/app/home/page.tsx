@@ -30,45 +30,72 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const hero = nowItems[0];
   const rest = nowItems.slice(1);
   const nextAlt = !!hero && !!nextItems[0] && hero.category === "어학" && nextItems[0].category === "어학";
+  const nextPhotos = nextItems.map((v, i) => photoOf(v.category, i === 0 && nextAlt));
+  // 다음 칸 사진, 또는 크게 보기 카드의 작은 사진이 하나라도 있으면 아래 줄에 AI 이미지 문구를 단다
+  const hasPhoto = [...nowItems, ...nextItems].some((v) => photoOf(v.category));
+  const showNow = nowItems.length === 0 || rest.length > 0;
 
   return (
-    <Shell>
+    <Shell foot={`실제 접수는 기관에 확인하세요${hasPhoto ? " · 사진은 AI 생성 시범 이미지" : ""}`}>
       <main className="body home">
         {hero ? <HeroCourse v={hero} /> : null}
 
-        <h2 className="h2 home-h2">지금 칸과 다음 칸</h2>
-        <Stepper st={st} nowItems={nowItems} nextItems={nextItems} />
+        <section className="home-stairs" aria-labelledby="home-st">
+          <div className="eyebrow">01</div>
+          <h2 className="h2 home-h2" id="home-st">
+            지금 칸과 다음 칸
+          </h2>
+          <Stepper st={st} nowItems={nowItems} nextItems={nextItems} />
+        </section>
 
         <div className="home-list">
           {nowItems.length === 0 ? (
-            <>
+            <section className="home-sec" aria-labelledby="home-now">
+              <div className="eyebrow">02</div>
+              <h2 className="h2 home-lab" id="home-now">
+                지금 칸
+              </h2>
               <p className="home-empty">{EMPTY_LIST}</p>
               <Link href={`/where?st=${st}`} className="sbtn home-where">
                 동네 바꾸기
               </Link>
-            </>
+            </section>
           ) : (
             rest.length > 0 && (
-              <section className="home-sec">
-                <div className="home-lab">지금 칸</div>
+              <section className="home-sec" aria-labelledby="home-now">
+                <div className="eyebrow">02</div>
+                <h2 className="h2 home-lab" id="home-now">
+                  지금 칸
+                </h2>
                 {st !== 3 && <p className="home-hint">{HOME_HINT[st]}</p>}
-                {rest.map((v) => (
-                  <CourseRow key={v.id} v={v} />
-                ))}
+                <ol className="cards">
+                  {rest.map((v, i) => (
+                    <li key={v.id}>
+                      <CourseRow v={v} no={i + 1} />
+                    </li>
+                  ))}
+                </ol>
               </section>
             )
           )}
 
-          <section className="home-sec home-next">
-            <div className="home-lab">다음 칸</div>
+          <section className="home-sec home-next" aria-labelledby="home-next">
+            <div className="eyebrow">{showNow ? "03" : "02"}</div>
+            <h2 className="h2 home-lab" id="home-next">
+              다음 칸
+            </h2>
             {st === 3 ? (
               <p className="home-hint">{NEXT_SLOT_STAIR3}</p>
             ) : nextItems.length === 0 ? (
               <p className="home-hint">{EMPTY_LIST}</p>
             ) : (
-              nextItems.map((v, i) => (
-                <CourseRow key={v.id} v={v} thumb={{ src: photoOf(v.category, i === 0 && nextAlt) }} />
-              ))
+              <ol className="cards">
+                {nextItems.map((v, i) => (
+                  <li key={v.id}>
+                    <CourseRow v={v} no={i + 1} thumb={{ src: nextPhotos[i] }} />
+                  </li>
+                ))}
+              </ol>
             )}
           </section>
         </div>
