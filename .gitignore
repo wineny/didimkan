@@ -34,3 +34,5 @@ npm-debug.log*
 .pnpm-debug.log*
 # e2e screenshots (사람 검토용, 커밋 안 함)
 e2e/shots/
+.vercel
+.env*

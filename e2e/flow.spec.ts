@@ -35,7 +35,7 @@ test('② 「집에서」 선택 시 1단, /where 에 「동네는 건너뛰기�
 
 test('③ 강좌 카드: 신호 타일 6개, 외부 신청 링크, 전화 버튼', async ({ page }) => {
   const ids = loadFixtureIds();
-  await page.goto(`/course/9632?st=2&sido=${ids.sido ?? ''}&sigungu=${ids.sigungu ?? ''}`);
+  await page.goto(`/course/${ids.ids?.["9632"] ?? "9632"}?st=2&sido=${ids.sido ?? ''}&sigungu=${ids.sigungu ?? ''}`);
   await expect(page.locator('[data-tile]')).toHaveCount(6);
   const apply = page.locator('a[data-apply]');
   await expect(apply).toHaveAttribute('target', '_blank');
@@ -62,7 +62,7 @@ test('④ 크게 보기: 새로고침 뒤 유지, 글자 1.4배↑, 버튼 64px�
 test('⑤ 390px 가로 넘침 0: 4화면 × 일반·크게', async ({ page }) => {
   const ids = loadFixtureIds();
   const q = `st=2&sido=${ids.sido ?? ''}&sigungu=${ids.sigungu ?? ''}`;
-  const paths = ['/', `/where?${q}`, `/home?${q}`, `/course/9632?${q}`];
+  const paths = ['/', `/where?${q}`, `/home?${q}`, `/course/${ids.ids?.["9632"] ?? "9632"}?${q}`];
   for (const big of [false, true]) {
     for (const p of paths) {
       await page.goto(p);
@@ -74,7 +74,7 @@ test('⑤ 390px 가로 넘침 0: 4화면 × 일반·크게', async ({ page }) =>
 
 test('⑥ 알림 버튼 → 바텀시트 「접수 알림은 11월에 열려요」', async ({ page }) => {
   const ids = loadFixtureIds();
-  await page.goto(`/course/9632?st=2&sido=${ids.sido ?? ''}&sigungu=${ids.sigungu ?? ''}`);
+  await page.goto(`/course/${ids.ids?.["9632"] ?? "9632"}?st=2&sido=${ids.sido ?? ''}&sigungu=${ids.sigungu ?? ''}`);
   await page.locator('[data-notify]').click();
   const sheet = page.locator('[role=dialog][data-sheet]');
   await expect(sheet).toBeVisible();

@@ -6,6 +6,7 @@ export type FixtureIds = {
   today?: string;
   sido?: string;
   sigungu?: string;
+  ids?: Record<string, string>; // 옛 DB id → 새 id (A7 make_fixture 가 기록)
   [key: string]: unknown;
 };
 
