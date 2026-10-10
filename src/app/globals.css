@@ -54,9 +54,9 @@ body { margin: 0; font-family: Pretendard, -apple-system, "Apple SD Gothic Neo",
 .v4 .tbtn{height:2.3529rem;padding:0 0.8235rem;border:0;border-radius:0.5882rem;background:var(--surface);color:var(--text);font:600 1rem/1 Pretendard,sans-serif;white-space:nowrap}
 .v4 .back{width:2.3529rem;height:2.3529rem;display:flex;align-items:center;justify-content:flex-start;margin-left:-0.2353rem}
 .v4 .body{flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding:0 1.1765rem}
-.v4 .h1{margin:0;font:800 1.6471rem/1.28 Pretendard,sans-serif;letter-spacing:-0.04em}
+.v4 .h1{margin:0;font:800 1.5294rem/1.3 Pretendard,sans-serif;letter-spacing:-0.04em}
 .v4 .h2{margin:0;font:800 1.2941rem/1.3 Pretendard,sans-serif;letter-spacing:-0.04em}
-.v4 .sub{margin:0.3529rem 0 0;font:400 1rem/1.5 Pretendard,sans-serif;color:var(--text-2)}
+.v4 .sub{margin:0.5882rem 0 0;font:400 1rem/1.5 Pretendard,sans-serif;color:var(--text-2)}
 .v4 .meta{font:400 0.8824rem/1.45 Pretendard,sans-serif;color:var(--text-2)}
 .v4 .kick{font:700 1rem/1.3 Pretendard,sans-serif;color:var(--accent)}
 .v4 .link{font:500 0.9412rem/1.3 Pretendard,sans-serif;color:var(--text-2);text-decoration:underline;text-underline-offset:0.1765rem;white-space:nowrap}
@@ -233,7 +233,7 @@ html[data-big] .v4 .radio.on::after { width: 0.6154rem; height: 0.6154rem; }
 .v4 .cta:disabled { background: var(--surface); color: var(--text-3); }
 .v4 .gap-8 { margin-top: 0.4706rem; }
 .v4 .gap-24 { margin-top: 1.4118rem; }
-.v4 .m-kick { margin: 0.2353rem 0 0; font: 700 0.8824rem/1.3 Pretendard, sans-serif; color: var(--text-2); }
+.v4 .m-kick { margin: 1.1765rem 0 0; font: 700 0.8824rem/1.3 Pretendard, sans-serif; color: var(--text-2); }
 .v4 .m-courseline { margin-top: 0.3529rem; font: 800 1.1765rem/1.3 Pretendard, sans-serif; letter-spacing: -0.04em; }
 /* 입력칸 */
 .v4 input.field { width: 100%; border: 0; box-sizing: border-box; font: 700 1.2941rem/1 Pretendard, sans-serif; letter-spacing: 0.02em; color: var(--text); }

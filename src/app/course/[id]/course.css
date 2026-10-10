@@ -6,7 +6,7 @@
 /* 사진: 정사각, 글자를 얹지 않는다 */
 .v4 .c-cover { flex: none; margin: 0.2353rem 0 0; }
 .v4 .c-cover img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 1.2941rem; }
-.v4 .c-title { margin: 1.4118rem 0 0; font: 800 1.8824rem/1.35 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--text); }
+.v4 .c-title { margin: 1.4118rem 0 0; font: 800 1.5294rem/1.35 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--text); }
 .v4 .c-where { margin: 0.8235rem 0 0; font: 600 1rem/1.6 Pretendard, sans-serif; color: var(--accent); }
 .v4 .c-src { margin: 0.4706rem 0 0; font: 400 0.8824rem/1.5 Pretendard, sans-serif; color: var(--text-2); }
 
