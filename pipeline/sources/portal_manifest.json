@@ -442,7 +442,7 @@
   },
   {
     "key": "gwangju-dong",
-    "sido": "광주광역시",
+    "sido": "전남광주통합특별시",
     "sigungu": "동구",
     "public_data_pk": "15021227",
     "kind": "file",
@@ -467,7 +467,7 @@
   },
   {
     "key": "gwangju-nam",
-    "sido": "광주광역시",
+    "sido": "전남광주통합특별시",
     "sigungu": "남구",
     "public_data_pk": "15122449",
     "kind": "file",
@@ -491,7 +491,7 @@
   },
   {
     "key": "gwangju-buk",
-    "sido": "광주광역시",
+    "sido": "전남광주통합특별시",
     "sigungu": "북구",
     "public_data_pk": "15160468",
     "kind": "file",

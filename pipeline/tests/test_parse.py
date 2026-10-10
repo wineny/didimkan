@@ -52,14 +52,18 @@ def test_parse_fee(raw, exp):
     assert p.parse_fee(raw) == exp
 
 
-def test_sido_all_17():
-    assert len(p.SIDO_FULL) == 17
-    abbr = ["서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종", "경기", "강원",
+def test_sido_all_16():
+    # 2026-07-01 광주광역시+전라남도 → 전남광주통합특별시 (16개 시도)
+    assert len(p.SIDO_FULL) == 16
+    abbr = ["서울", "부산", "대구", "인천", "대전", "울산", "세종", "경기", "강원",
             "충북", "충남", "전북", "전남", "경북", "경남", "제주"]
     assert [p.normalize_sido(a) for a in abbr] == p.SIDO_FULL
     for full in p.SIDO_FULL:
         assert p.normalize_sido(full) == full
     assert p.normalize_sido("서울 특별시") == "서울특별시"
+    for old in ["광주", "광주광역시", "광주특별시", "전남", "전라남도"]:
+        assert p.normalize_sido(old) == "전남광주통합특별시"
+    assert p.normalize_sido("대전충남통합특별시") == "대전충남통합특별시"  # 통합 안 됨 → 원문 유지(호출자가 기록)
     assert p.normalize_sido("전라북도") == "전북특별자치도"
 
 
