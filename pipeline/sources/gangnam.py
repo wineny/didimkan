@@ -97,7 +97,8 @@ def normalize(lecture: dict, company: dict, *, collected_at: str, today: date) -
         fee_period = "월"
     bucket = time_bucket(start_time)
     dong_m = DONG_RE.search(institution or "")
-    zone = derive.gangnam_zone(institution)
+    # 권역·신규 창은 동 복합문화센터·커뮤니티센터(is_dong_center=1)만. 그 밖(체육시설·평생학습관)은 None.
+    zone = derive.gangnam_zone(institution) if derive.is_dong_center(institution, None) else None
     apply_start = apply_end = None
     if zone:
         apply_start, apply_end, _note = derive.gangnam_window(_window_ref(today), zone)

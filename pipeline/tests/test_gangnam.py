@@ -74,6 +74,14 @@ def test_non_dong_center_has_no_window(companies):
     assert r["apply_start"] is None and r["is_dong_center"] == 0
 
 
+def test_non_dong_center_named_after_dong_has_no_window(companies):
+    # C4: 「청담」「세곡」이 이름에 있어도 동 복합문화센터가 아니면 창을 저장하지 않는다
+    lec = {"class_cd": "1", "class_nm": "요가", "course_fee": "30,000", "comcd": "GNCC05"}
+    for name in ("강남세곡체육공원 체육시설", "청담 평생학습관"):
+        r = gangnam.normalize(lec, {**companies["GNCC05"], "comnm": name}, collected_at="2026-10-10", today=TODAY)
+        assert (r["apply_start"], r["apply_end"]) == (None, None), name
+
+
 def test_make_id_deterministic(rows, companies):
     sample = json.loads((FIX / "lectures_sample.json").read_text(encoding="utf-8"))
     again = [gangnam.normalize(lec, companies[c], collected_at="2026-11-01", today=date(2026, 11, 1))

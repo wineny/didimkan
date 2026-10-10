@@ -178,12 +178,16 @@ JSON 배열 문자열. 키는 아래 8개만, **아래 순서대로** 넣는다.
 판정 순서(위에서 처음 맞는 것, `today` 는 인자로 받는다):
 
 1. `is_always_open = 1` → `always`
-2. `apply_end` 있음 ∧ `today > apply_end` → `closed`
-3. `apply_start` 있음 ∧ `today < apply_start` → `before`
-4. `apply_start` 있음(∧ `apply_end` 없거나 `today ≤ apply_end`) → `open`
-5. `apply_start` 없음 ∧ 예측(`enrollment_patterns.next_open_estimate`) 있음 ∧ `next_open_estimate ≥ today` → `before`(예상)
-6. `end_date` 있음 ∧ `today > end_date` → `closed`
-7. 그 밖(시작일 없이 마감일만 있고 아직 안 지남 포함) → `unknown`
+2. `apply_start`·`apply_end` 둘 다 있음 ∧ `apply_start > apply_end`(거꾸로) → `unknown` (날짜 오류, 지어내지 않음)
+3. `apply_end` 있음 ∧ `today > apply_end` → `closed`
+4. `apply_start` 있음 ∧ `today < apply_start` → `before`
+5. `apply_start` 있음 ∧ `apply_end` 없음 ∧ `end_date` 있음 ∧ `today > end_date` → `closed`
+6. `apply_start` 있음(그 밖) → `open`
+7. `apply_start` 없음 ∧ 예측(`enrollment_patterns.next_open_estimate`) 있음 ∧ `next_open_estimate ≥ today` → `before`(예상)
+8. `end_date` 있음 ∧ `today > end_date` → `closed`
+9. 그 밖(시작일 없이 마감일만 있고 아직 안 지남 포함) → `unknown`
+
+`pipeline/derive.py:apply_status`(7번 제외)와 `src/lib/status.ts:applyStatus` 는 이 순서를 그대로 따르고, 같은 입력에 같은 결과를 내는지 양쪽 테스트가 같은 사례로 확인한다.
 
 D-n 은 `날짜 − today` 의 달력 일수(한국 시간). 접수일이 없으면 「확인 안 됨」.
 

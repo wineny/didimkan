@@ -125,7 +125,8 @@ export function tiles(c: TileCourse): Tile[] {
       : c.selectionMethod === "선착순"
         ? { key: "selection", label: "접수", value: "선착순", tone: "neutral" }
         : { key: "selection", label: "접수", value: UNKNOWN, tone: "muted" };
-  const weeks = c.termDays ? Math.ceil(c.termDays / 7) : null;
+  // contract §9·§12: round(term_days/7), 0.5 는 올림 — derive.py stair_reason 과 같은 주 수
+  const weeks = c.termDays ? Math.round(c.termDays / 7) : null;
   const period: Tile = has("once")
     ? { key: "period", label: "기간", value: "1회", tone: "good" }
     : weeks && c.sessionsPerWeek

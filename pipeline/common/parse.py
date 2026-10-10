@@ -2,6 +2,7 @@
 import csv
 import hashlib
 import re
+import unicodedata
 from datetime import date
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -75,6 +76,8 @@ def parse_weekdays(raw: str) -> str:
     text = raw.strip()
     if "매일" in text:
         return ",".join(WEEKDAYS)
+    # 「월」이 요일이 아닌 경우를 먼저 지운다: 「월 2회」·「매월」·「3개월」·「10월」
+    text = re.sub(r"매월|월\s*\d+\s*회|\d+\s*개?월(?!요)", "", text)
     text = re.sub(r"[요용묘]일", "", text)
     text = text.replace("평일", "월,화,수,목,금").replace("주말", "토,일")
     found: list[str] = []
@@ -112,19 +115,26 @@ def time_bucket(start_hhmm: str | None) -> str | None:
 
 
 def parse_fee(raw: str | None) -> tuple[int | None, int, str | None]:
-    """수강료 원문 → (금액 원, 무료 0/1, 기간 '월'|'총'|None). 파싱 불가 (None, 0, None)."""
+    """수강료 원문 → (금액 원, 무료 0/1, 기간 '월'|'총'|None). 파싱 불가 (None, 0, None).
+
+    금액은 첫 금액만 읽는다(portal._fee 방식): 「10,000원(재료비 5,000원)」 → 10000.
+    「원」이 붙은 첫 숫자 → 없으면 천 단위 쉼표 숫자·세 자리 이상 숫자 → 없으면 아무 숫자.
+    기간: 「월」·「매달」이면 월, 「3개월」의 「개월」은 월 단위가 아니라 총.
+    """
     if raw is None:
         return None, 0, None
     text = raw.strip()
     if text in ("0", "무료", "무상"):
         return 0, 1, None
-    digits = re.sub(r"[^\d]", "", text)
-    if not digits:
+    m = (re.search(r"(\d[\d,]*)\s*원", text)
+         or re.search(r"(\d{1,3}(?:,\d{3})+|\d{3,})", text)
+         or re.search(r"(\d+)", text))
+    if not m:
         return None, 0, None
-    fee = int(digits)
+    fee = int(m.group(1).replace(",", ""))
     if fee == 0:
         return 0, 1, None
-    return fee, 0, "월" if re.search(r"월|매달", text) else "총"
+    return fee, 0, "월" if re.search(r"(?<!개)월|매달", text) else "총"
 
 
 def normalize_sido(raw: str | None) -> str | None:
@@ -163,8 +173,8 @@ def safe_http_url(v: str | None) -> str | None:
 
 
 def norm_key(s: str | None) -> str:
-    """공백·특수문자 제거 + 소문자 (id·중복 비교용)."""
-    return re.sub(r"[\W_]+", "", (s or "").lower())
+    """contract §2: NFKC → 소문자 → 공백·특수문자 제거 (id·중복 비교용). 「힘Ⅱ」=「힘II」, 「㈜」=「(주)」."""
+    return re.sub(r"[\W_]+", "", unicodedata.normalize("NFKC", s or "").lower())
 
 
 def make_id(title, institution, start_date, start_time, venue) -> str:

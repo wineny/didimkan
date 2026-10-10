@@ -91,7 +91,8 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
   const when = [c.weekdays?.replace(/,/g, "·"), timeRange(c.startTime, c.endTime)].filter(Boolean).join(" ");
   const heroSub = [c.venue ?? c.institution, when].filter(Boolean).join(" · ");
 
-  const weeks = c.termDays ? Math.ceil(c.termDays / 7) : null;
+  // contract §9·§12: round(term_days/7), 0.5 는 올림 — derive.py stair_reason 과 같은 주 수
+  const weeks = c.termDays ? Math.round(c.termDays / 7) : null;
   const dets: Record<string, string | null> = {
     fee: c.feePeriod === "월" ? "한 달 단위 등록" : c.feePeriod === "총" ? "한 번에 내는 돈" : null,
     basic: tile("basic").tone === "good" && c.title.includes("기초") ? "강좌명에 「기초」" : null,

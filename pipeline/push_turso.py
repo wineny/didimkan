@@ -1,7 +1,14 @@
 """로컬 SQLite 를 Turso 에 올린다 (계획 R4: 무중단 교체).
 
-흐름: <표>_new 생성 → 200행씩 INSERT → 한 트랜잭션에서 DROP·RENAME·인덱스 재생성 → COUNT 비교.
+흐름: 안전장치 → <표>_new 생성 → 200행씩 INSERT → 한 트랜잭션에서 DROP·RENAME·인덱스 재생성 → COUNT 비교.
 --dump 는 같은 내용을 SQL 파일로 만든다(turso db shell 백업 경로).
+
+안전장치(--force 로 건너뜀): 로컬 courses 에 소스(std·portal·gangnam·seoul_*)가 하나라도 0행이면 중단,
+원격 기존 courses 가 있고 로컬 행 수가 그 50% 미만이면 중단.
+
+교체는 Hrana 스트림(baton)으로 문장을 하나씩 보내 결과를 확인한다. Hrana pipeline 은 한 문장이 실패해도
+다음 문장을 계속 실행하므로, 한 요청에 몰아 보내면 RENAME 실패 뒤에도 COMMIT 이 돌 수 있기 때문이다.
+하나라도 오류면 바로 ROLLBACK 을 보내고 끝낸다.
 """
 import argparse
 import base64
@@ -16,6 +23,9 @@ ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = Path(__file__).resolve().parent / "schema.sql"
 TABLES = ["courses", "institutions", "enrollment_patterns", "meta"]
 TIMEOUT = 60
+EXPECTED_SOURCES = ("std", "portal", "gangnam", "seoul")  # seoul = source LIKE 'seoul_%'
+MIN_RATIO = 0.5
+REMOTE_COUNT_SQL = "SELECT COUNT(*) AS n FROM courses"
 
 
 def load_env(path):
@@ -106,23 +116,110 @@ def build_requests(conn, batch):
     swap = [execute("BEGIN")]
     for t in TABLES:
         swap += [execute(f"DROP TABLE IF EXISTS {t}"), execute(f"ALTER TABLE {t}_new RENAME TO {t}")]
-    swap += [execute(s) for s in indexes] + [execute("COMMIT"), {"type": "close"}]
-    reqs.append(("swap", {"requests": swap}))
+    swap += [execute(s) for s in indexes] + [execute("COMMIT")]
+    reqs.append(("swap", {"requests": swap}))  # run_swap 이 문장 하나씩 보낸다
     count_q = [execute(f"SELECT COUNT(*) FROM {t}") for t in TABLES] + [{"type": "close"}]
     reqs.append(("count", {"requests": count_q}))
     return reqs, counts
 
 
-def post(url, token, body):
-    """pipeline 요청 1건. HTTP 오류와 문장 단위 오류를 모두 RuntimeError 로 올린다(토큰은 안 담음)."""
+def post_raw(url: str, token: str, body: dict) -> dict:
+    """pipeline 요청 1건. HTTP 오류만 RuntimeError 로 올리고, 문장 결과는 호출자가 본다(토큰은 안 담음)."""
     r = requests.post(url, json=body, headers={"Authorization": f"Bearer {token}"}, timeout=TIMEOUT)
     if r.status_code >= 400:
         raise RuntimeError(f"HTTP {r.status_code}: {r.text[:500]}")
-    data = r.json()
+    return r.json()
+
+
+def stmt_error(res: dict) -> str | None:
+    if res.get("type") == "error":
+        return str(res.get("error", {}).get("message", res))
+    return None
+
+
+def post(url, token, body):
+    """pipeline 요청 1건. HTTP 오류와 문장 단위 오류를 모두 RuntimeError 로 올린다(토큰은 안 담음)."""
+    data = post_raw(url, token, body)
     for i, res in enumerate(data.get("results", [])):
         if res.get("type") == "error":
             raise RuntimeError(f"문장 {i} 오류: {res.get('error', {}).get('message', res)}")
     return data
+
+
+def local_source_counts(conn: sqlite3.Connection) -> dict[str, int]:
+    counts = dict.fromkeys(EXPECTED_SOURCES, 0)
+    for src, n in conn.execute("SELECT source, COUNT(*) FROM courses GROUP BY source"):
+        key = "seoul" if src.startswith("seoul_") else src
+        counts[key] = counts.get(key, 0) + n
+    return counts
+
+
+def remote_course_count(endpoint: str, token: str) -> int | None:
+    """원격 기존 courses 행 수. 표가 없으면(첫 배포) None. HTTP 오류는 그대로 올린다."""
+    data = post_raw(endpoint, token, {"requests": [execute(REMOTE_COUNT_SQL), {"type": "close"}]})
+    res = data["results"][0]
+    if stmt_error(res):
+        return None
+    return int(res["response"]["result"]["rows"][0][0]["value"])
+
+
+def safety_problems(sources: dict[str, int], local_courses: int, remote_courses: int | None) -> list[str]:
+    problems = [f"로컬 courses 에 소스 {s} 행이 0개" for s, n in sources.items() if n == 0]
+    if remote_courses and local_courses < remote_courses * MIN_RATIO:
+        problems.append(f"로컬 courses {local_courses}행이 원격 {remote_courses}행의 50% 미만")
+    return problems
+
+
+def _endpoint_from(data: dict, current: str) -> str:
+    base = data.get("base_url")
+    return base.rstrip("/") + "/v2/pipeline" if base else current
+
+
+def run_swap(endpoint: str, token: str, stmts: list[dict]) -> bool:
+    """교체 트랜잭션을 한 스트림에서 문장 하나씩 보낸다. 오류가 나면 ROLLBACK 을 보내고 False."""
+    baton: str | None = None
+    for i, stmt in enumerate(stmts):
+        body: dict = {"requests": [stmt]}
+        if baton:
+            body["baton"] = baton
+        try:
+            data = post_raw(endpoint, token, body)
+            err = stmt_error(data["results"][0])
+            baton = data.get("baton") or baton
+            endpoint = _endpoint_from(data, endpoint)
+        except (RuntimeError, requests.RequestException, KeyError, IndexError, ValueError) as e:
+            err = repr(e)
+        if err is None:
+            continue
+        print(f"[swap] 문장 {i} 「{stmt['stmt']['sql']}」 오류: {err}", file=sys.stderr)
+        if i == 0:
+            print("[swap] BEGIN 이 실패해 아무것도 바뀌지 않음(원격 기존 표는 그대로)", file=sys.stderr)
+            return False
+        rollback(endpoint, token, baton)
+        return False
+    if baton:  # 스트림 닫기(실패해도 COMMIT 은 이미 끝남)
+        try:
+            post_raw(endpoint, token, {"baton": baton, "requests": [{"type": "close"}]})
+        except (RuntimeError, requests.RequestException):
+            pass
+    return True
+
+
+def rollback(endpoint: str, token: str, baton: str | None) -> bool:
+    """ROLLBACK 을 보내고 실제로 성공했을 때만 「롤백됨」을 찍는다."""
+    body: dict = {"requests": [execute("ROLLBACK"), {"type": "close"}]}
+    if baton:
+        body["baton"] = baton
+    try:
+        data = post_raw(endpoint, token, body)
+        err = stmt_error(data["results"][0])
+    except (RuntimeError, requests.RequestException, KeyError, IndexError, ValueError) as e:
+        err = repr(e)
+    if err is None:
+        print("[swap] 롤백됨(원격 기존 표는 그대로)", file=sys.stderr)
+        return True
+    print(f"[swap] ROLLBACK 도 실패: {err} — 원격 DB 상태를 직접 확인하세요", file=sys.stderr)
+    return False
 
 
 def remote_counts(data):
@@ -154,6 +251,7 @@ def main(argv=None):
     ap.add_argument("--env", default=str(ROOT / ".env.local"))
     ap.add_argument("--batch", type=int, default=200)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--force", action="store_true", help="안전장치(소스 0행·원격 대비 50%% 미만)를 건너뛴다")
     a = ap.parse_args(argv)
 
     if not Path(a.db).exists():
@@ -169,7 +267,8 @@ def main(argv=None):
     reqs, local = build_requests(conn, a.batch)
     if a.dry_run:
         for name, body in reqs:
-            print(f"{name}: 문장 {len(body['requests']) - 1}개")
+            n = len(body["requests"]) - (0 if name == "swap" else 1)
+            print(f"{name}: 문장 {n}개")
         print(f"요청 {len(reqs)}건, 행 수 " + ", ".join(f"{t}={n}" for t, n in local.items()))
         return 0
 
@@ -181,13 +280,27 @@ def main(argv=None):
         return 1
     endpoint = url + "/v2/pipeline"
 
+    try:
+        remote_before = remote_course_count(endpoint, token)
+    except (RuntimeError, requests.RequestException) as e:
+        print(f"[check] 원격 행 수 확인 실패: {e}", file=sys.stderr)
+        return 1
+    problems = safety_problems(local_source_counts(conn), local["courses"], remote_before)
+    if problems and not a.force:
+        for msg in problems:
+            print(f"[check] 중단: {msg} (그래도 올리려면 --force)", file=sys.stderr)
+        return 1
+
     count_data = None
     for name, body in reqs:
+        if name == "swap":
+            if not run_swap(endpoint, token, body["requests"]):
+                return 1
+            continue
         try:
             data = post(endpoint, token, body)
         except (RuntimeError, requests.RequestException) as e:
-            where = "교체 전 실패(원격 기존 표는 그대로)" if name != "swap" else "교체 실패(트랜잭션은 롤백됨)"
-            print(f"[{name}] {where}: {e}", file=sys.stderr)
+            print(f"[{name}] 교체 전 실패(원격 기존 표는 그대로): {e}", file=sys.stderr)
             return 1
         if name == "count":
             count_data = data

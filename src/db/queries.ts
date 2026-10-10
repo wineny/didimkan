@@ -65,18 +65,23 @@ function areaRankSql(stair: Stair, area: Area): SQL | null {
   return sql`CASE${dong ? sql` WHEN ${dong} THEN 0` : sql``}${gu ? sql` WHEN ${gu} THEN 1` : sql``} WHEN ${sido} THEN 2 ELSE 3 END`;
 }
 
-/** 마감이면 1(contract §10 2·6번): 접수 마감일 지남, 또는 접수 시작일 없이 강좌 종료일 지남. 연중·수시는 0. */
+/**
+ * 마감이면 1(contract §10 3·5·8번): 접수 마감일 지남, 또는 마감일·시작일 중 하나가 없고 강좌 종료일 지남.
+ * 연중·수시와 날짜가 거꾸로인 행(2번 unknown)은 0.
+ */
 function closedSql(today: string): SQL {
   return sql`CASE WHEN ${courses.isAlwaysOpen} = 1 THEN 0
+    WHEN ${courses.applyStart} IS NOT NULL AND ${courses.applyEnd} IS NOT NULL AND ${courses.applyStart} > ${courses.applyEnd} THEN 0
     WHEN ${courses.applyEnd} IS NOT NULL AND ${courses.applyEnd} < ${today} THEN 1
-    WHEN ${courses.applyStart} IS NULL AND ${courses.endDate} IS NOT NULL AND ${courses.endDate} < ${today} THEN 1
+    WHEN (${courses.applyStart} IS NULL OR ${courses.applyEnd} IS NULL) AND ${courses.endDate} IS NOT NULL AND ${courses.endDate} < ${today} THEN 1
     ELSE 0 END`;
 }
 
-/** 접수 중이면 0(contract §10 4번: 시작일 ≤ today, 마감일 없거나 today ≤ 마감일). */
+/** 접수 중이면 0(contract §10 6번: 시작일 ≤ today ≤ 마감일, 마감일이 없으면 강좌 종료일이 안 지남). */
 function notOpenSql(today: string): SQL {
   return sql`CASE WHEN ${courses.isAlwaysOpen} = 0 AND ${courses.applyStart} IS NOT NULL AND ${courses.applyStart} <= ${today}
-    AND (${courses.applyEnd} IS NULL OR ${today} <= ${courses.applyEnd}) THEN 0 ELSE 1 END`;
+    AND ((${courses.applyEnd} IS NOT NULL AND ${today} <= ${courses.applyEnd})
+      OR (${courses.applyEnd} IS NULL AND (${courses.endDate} IS NULL OR ${today} <= ${courses.endDate}))) THEN 0 ELSE 1 END`;
 }
 
 export async function listCourses({

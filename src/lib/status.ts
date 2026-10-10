@@ -30,7 +30,7 @@ const result = (
 
 /**
  * 접수 상태를 today(YYYY-MM-DD) 기준으로 계산한다. 날짜 문자열 비교는 사전순 = 시간순.
- * docs/contract.md §10 판정 순서를 그대로 옮겼다(pipeline/derive.py:apply_status 와 같은 결과, 5번 예측만 추가).
+ * docs/contract.md §10 판정 순서를 그대로 옮겼다(pipeline/derive.py:apply_status 와 같은 결과, 7번 예측만 추가).
  */
 export function applyStatus(
   course: StatusCourse,
@@ -39,14 +39,23 @@ export function applyStatus(
 ): StatusResult {
   const start = course.applyStart ?? null;
   const end = course.applyEnd ?? null;
+  const courseEnd = course.endDate ?? null;
 
   // 1. 연중·수시
   if (course.isAlwaysOpen) return result("always");
-  // 2. 마감일 지남
+  // 2. 시작일 > 마감일(거꾸로)은 날짜 오류 → 지어내지 않는다
+  if (start && end && start > end) return result("unknown");
+  // 3. 마감일 지남
   if (end && today > end) return result("closed", end);
-  // 3·4. 시작일 있음 → 시작 전이면 before, 아니면 open(마감일 없거나 안 지남)
-  if (start) return today < start ? result("before", start) : result("open", end);
-  // 5. 시작일 없음 ∧ 예측이 오늘 이후
+  if (start) {
+    // 4. 시작 전
+    if (today < start) return result("before", start);
+    // 5. 마감일 없이 강좌 종료일 지남
+    if (!end && courseEnd && today > courseEnd) return result("closed");
+    // 6. 접수 중
+    return result("open", end);
+  }
+  // 7. 시작일 없음 ∧ 예측이 오늘 이후
   const est = pattern?.nextOpenEstimate ?? null;
   if (est && est >= today) {
     return {
@@ -58,9 +67,9 @@ export function applyStatus(
       ruleNote: pattern?.ruleNote ?? null,
     };
   }
-  // 6. 강좌 종료일 지남
-  if (course.endDate && today > course.endDate) return result("closed");
-  // 7. 그 밖(시작일 없이 마감일만 있고 안 지남 포함)
+  // 8. 강좌 종료일 지남
+  if (courseEnd && today > courseEnd) return result("closed");
+  // 9. 그 밖(시작일 없이 마감일만 있고 안 지남 포함)
   return result("unknown");
 }
 

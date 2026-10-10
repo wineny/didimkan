@@ -26,8 +26,21 @@ describe("applyStatus = pipeline/derive.py:apply_status", () => {
     expect(applyStatus(course({ applyEnd: "2026-10-09" }), T).status).toBe("closed");
     expect(applyStatus(course({ applyStart: "2026-10-01" }), T).status).toBe("open");
     expect(applyStatus(course({ applyStart: "2026-10-11" }), T).status).toBe("before");
-    // 마감 지남이 시작 전보다 먼저(데이터가 거꾸로여도 closed)
-    expect(applyStatus(course({ applyStart: "2026-10-20", applyEnd: "2026-10-01" }), T).status).toBe("closed");
+    // (c) 시작일 > 마감일(거꾸로)은 날짜 오류 → unknown
+    expect(applyStatus(course({ applyStart: "2026-10-20", applyEnd: "2026-10-01" }), T).status).toBe("unknown");
+    expect(applyStatus(course({ applyStart: "2026-10-05", applyEnd: "2026-10-01" }), T).status).toBe("unknown");
+  });
+  it("unified rules (C3)", () => {
+    // (a) 시작일 없이 마감일만 → unknown
+    expect(applyStatus(course({ applyEnd: "2026-10-31", endDate: "2026-12-31" }), T).status).toBe("unknown");
+    // (b) 시작일만: 강좌 종료일 지났으면 closed, 아니면 open
+    expect(applyStatus(course({ applyStart: "2026-09-01", endDate: "2026-10-09" }), T).status).toBe("closed");
+    expect(applyStatus(course({ applyStart: "2026-09-01", endDate: "2026-10-10" }), T).status).toBe("open");
+    expect(applyStatus(course({ applyStart: "2026-09-01" }), T).status).toBe("open");
+    // 마감일이 있으면 강좌 종료일은 보지 않는다
+    expect(applyStatus(course({ applyStart: "2026-09-01", applyEnd: "2026-10-20", endDate: "2026-10-01" }), T).status).toBe("open");
+    // (c) 거꾸로 → unknown
+    expect(applyStatus(course({ applyStart: "2026-11-01", applyEnd: "2026-10-20" }), T).status).toBe("unknown");
   });
   it.each([
     ["2026-09-25", "before", "before"],
@@ -47,6 +60,10 @@ describe("applyStatus 세부", () => {
     const c = course({ applyStart: "2026-10-11", applyEnd: "2026-10-20" });
     expect(applyStatus(c, T)).toMatchObject({ status: "before", date: "2026-10-11", isEstimate: false });
     expect(applyStatus(c, "2026-10-11")).toMatchObject({ status: "open", date: "2026-10-20" });
+  });
+  it("(a) 시작일 없이 마감일만 있고 예측이 있으면 예상 before", () => {
+    const p = { nextOpenEstimate: "2026-10-25", basisCount: 4, ruleNote: null };
+    expect(applyStatus(course({ applyEnd: "2026-10-31" }), T, p)).toMatchObject({ status: "before", isEstimate: true });
   });
   it("시작일 없이 마감일만 있고 안 지났으면 날짜를 지어내지 않는다", () => {
     expect(applyStatus(course({ applyEnd: "2026-10-12" }), T)).toEqual({ status: "unknown", isEstimate: false });

@@ -34,6 +34,12 @@ describe("tiles", () => {
     const t = tiles({ ...course, isFree: true, isOnline: true, capacity: 12, selectionMethod: "추첨", signals: ["free", "basic", "small", "lottery", "once", "online"] });
     expect(t.map((x) => x.value)).toEqual(["무료", "기초·입문", "12명 소규모", "추첨 · 서둘러 누르지 않아도 됩니다", "1회", "집에서"]);
   });
+  it("기간 주 수는 반올림(derive.py stair_reason 과 같음): 73일 → 10주(예전 올림은 11주)", () => {
+    const period = (termDays: number) => tiles({ ...course, termDays, sessionsPerWeek: 2 }).find((x) => x.key === "period")?.value;
+    expect(period(73)).toBe("10주 · 주 2회");
+    expect(period(74)).toBe("11주 · 주 2회"); // 10.57 → 11
+    expect(period(30)).toBe("4주 · 주 2회");
+  });
   it("정보가 없으면 확인 안 됨", () => {
     const t = tiles({ ...course, feeWon: null, capacity: null, selectionMethod: null, termDays: null, sessionsPerWeek: null });
     expect(t.filter((x) => x.value === "확인 안 됨").map((x) => x.key)).toEqual(["fee", "capacity", "selection", "period"]);

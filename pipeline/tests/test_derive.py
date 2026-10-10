@@ -208,8 +208,24 @@ def test_apply_status_partial_dates():
     assert apply_status(course(apply_end="2026-10-09"), today) == "closed"
     assert apply_status(course(apply_start="2026-10-01"), today) == "open"
     assert apply_status(course(apply_start="2026-10-11"), today) == "before"
-    # 마감 지남이 시작 전보다 먼저(데이터가 거꾸로여도 closed)
-    assert apply_status(course(apply_start="2026-10-20", apply_end="2026-10-01"), today) == "closed"
+    # (c) 시작일 > 마감일(거꾸로)은 날짜 오류 → unknown
+    assert apply_status(course(apply_start="2026-10-20", apply_end="2026-10-01"), today) == "unknown"
+    assert apply_status(course(apply_start="2026-10-05", apply_end="2026-10-01"), today) == "unknown"
+
+
+def test_apply_status_unified_rules():
+    # 리드 결정 C3: status.ts 와 같은 입력 → 같은 결과
+    today = date(2026, 10, 10)
+    # (a) 시작일 없이 마감일만 → unknown(예측은 조회 쪽)
+    assert apply_status(course(apply_end="2026-10-31", end_date="2026-12-31"), today) == "unknown"
+    # (b) 시작일만: 강좌 종료일 지났으면 closed, 아니면 open
+    assert apply_status(course(apply_start="2026-09-01", end_date="2026-10-09"), today) == "closed"
+    assert apply_status(course(apply_start="2026-09-01", end_date="2026-10-10"), today) == "open"
+    assert apply_status(course(apply_start="2026-09-01"), today) == "open"
+    # 마감일이 있으면 강좌 종료일은 보지 않는다
+    assert apply_status(course(apply_start="2026-09-01", apply_end="2026-10-20", end_date="2026-10-01"), today) == "open"
+    # (c) 거꾸로 → unknown
+    assert apply_status(course(apply_start="2026-11-01", apply_end="2026-10-20"), today) == "unknown"
 
 
 # ---------- 강남 권역 ----------
@@ -230,6 +246,9 @@ def test_gangnam_zone_table():
     assert gangnam_zone("대치4동복합문화센터") == 2
     assert gangnam_zone("세곡커뮤니티센터") == 2
     assert gangnam_zone("압구정동복합문화센터") is None
+    # C4: 동 복합문화센터·커뮤니티센터가 아니면 동 이름이 들어 있어도 권역 없음
+    assert gangnam_zone("강남세곡체육공원 체육시설") is None
+    assert gangnam_zone("청담 평생학습관") is None
 
 
 @pytest.mark.parametrize("today,z1,z2", [
@@ -317,6 +336,13 @@ def test_patterns_gangnam_zone_from_apply_start():
                    apply_start="2026-09-27", apply_end="2026-09-30")]
     [p] = build_patterns(rows, date(2026, 10, 10))
     assert p["next_open_estimate"] == "2026-10-27" and p["rule_note"].startswith("2권역")
+
+
+def test_patterns_gangnam_non_dong_center_skipped():
+    rows = [course(source="gangnam", description=None, institution="강남세곡체육공원 체육시설"),
+            course(source="gangnam", description=None, institution="청담 평생학습관",
+                   apply_start="2026-09-26", apply_end="2026-09-30")]
+    assert build_patterns(rows, date(2026, 10, 10)) == []
 
 
 def test_patterns_gangnam_zone_unknown():

@@ -24,6 +24,9 @@ def test_parse_time(raw, exp):
     ("월,수", "월,수"), ("월~금", "월,화,수,목,금"), ("매주 화요일", "화"),
     ("월요일", "월"), ("매일", "월,화,수,목,금,토,일"), ("주말", "토,일"), ("", ""),
     ("금~월", "월,금,토,일"),
+    # 「월」이 요일이 아닌 경우
+    ("금요일(월 2회)", "금"), ("매월 2,4째주 토", "토"), ("화,목 (3개월)", "화,목"),
+    ("10월~12월 수요일", "수"), ("월 1회 월요일", "월"),
 ])
 def test_parse_weekdays(raw, exp):
     assert p.parse_weekdays(raw) == exp
@@ -47,6 +50,9 @@ def test_time_bucket(t, exp):
     ("월 18,000원", (18000, 0, "월")), ("무료", (0, 1, None)), ("30,000원", (30000, 0, "총")),
     ("0", (0, 1, None)), ("문의", (None, 0, None)), ("", (None, 0, None)),
     ("0원", (0, 1, None)),
+    # 첫 금액만 (portal._fee 방식)
+    ("10,000원(재료비 5,000원)", (10000, 0, "총")),
+    ("3개월 54,000원", (54000, 0, "총")),
 ])
 def test_parse_fee(raw, exp):
     assert p.parse_fee(raw) == exp
@@ -89,6 +95,13 @@ def test_make_id():
 def test_norm_key():
     assert p.norm_key(" AbC-가 나_! ") == "abc가나"
     assert p.norm_key(None) == ""
+
+
+def test_norm_key_nfkc():
+    # contract §2: NFKC 먼저
+    assert p.norm_key("힘Ⅱ") == p.norm_key("힘II") == "힘ii"
+    assert p.norm_key("필라테스㈜") == p.norm_key("필라테스(주)") == "필라테스주"
+    assert p.make_id("힘Ⅱ", "센터㈜", None, None, None) == p.make_id("힘II", "센터(주)", None, None, None)
 
 
 def test_decode_bytes_cp949():

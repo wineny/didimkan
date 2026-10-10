@@ -9,7 +9,7 @@
   source 가 gangnam·seoul_* 이면 만들지 않는다. 제목 기반 basic 은 허용.
 - stair_reason 은 docs/contract.md §9 표 그대로: 1단 고정 문장 / 2단 소규모 > 1회 > 기초 / 3단 「N주 동안」.
   N = term_days/7 반올림(0.5 는 올림).
-- apply_status 는 contract §10 판정 순서 1~4·6·7(5번 예측은 조회 쪽 몫).
+- apply_status 는 contract §10 판정 순서 1~6·8·9(7번 예측은 조회 쪽 몫). src/lib/status.ts 와 같은 결과.
 - 예측: 접수시작일(today 이하) 중복 제거 → 7일 이내 이웃은 한 번의 오픈으로 묶음(build_patterns.py 방식)
   → 묶음 수 ≥ 3 일 때만 간격 중앙값으로 예측. 예상일이 today 보다 과거면 주기를 더한다(today 당일은 유지).
 - 강남(source=gangnam): 권역은 contract §11 센터표(GANGNAM_ZONE_STEMS)로, 표에 없으면 강좌의
@@ -207,21 +207,31 @@ def stair_reason(row: dict, stair: int | None) -> str | None:
 
 
 def apply_status(row: dict, today: date) -> str:
-    """contract §10 판정 순서. 5번(예측 → before)은 enrollment_patterns 를 조인하는 조회 쪽이 한다."""
+    """contract §10 판정 순서. 7번(예측 → before)은 enrollment_patterns 를 조인하는 조회 쪽이 한다."""
     if row.get("is_always_open"):
         return "always"
     start, end = _d(row.get("apply_start")), _d(row.get("apply_end"))
+    course_end = _d(row.get("end_date"))
+    if start is not None and end is not None and start > end:
+        return "unknown"  # 날짜 오류: 지어내지 않는다
     if end is not None and today > end:
         return "closed"
     if start is not None:
-        return "before" if today < start else "open"
-    course_end = _d(row.get("end_date"))
+        if today < start:
+            return "before"
+        if end is None and course_end is not None and today > course_end:
+            return "closed"
+        return "open"
     if course_end is not None and today > course_end:
         return "closed"
     return "unknown"
 
 
 def gangnam_zone(institution: str | None) -> int | None:
+    """강남 권역(1·2). 동 복합문화센터·커뮤니티센터(is_dong_center=1)만 판정한다.
+    체육시설·평생학습관 등은 이름에 동 이름이 들어 있어도(「청담 평생학습관」) 접수 창이 달라 None."""
+    if not is_dong_center(institution, None):
+        return None
     name = (institution or "").replace(" ", "")
     for zone, stems in GANGNAM_ZONE_STEMS.items():
         if any(stem in name for stem in stems):
@@ -283,6 +293,8 @@ def build_patterns(rows: list[dict], today: date) -> list[dict]:
     out: list[dict] = []
     for (inst, sigungu), items in groups.items():
         if any(r.get("source") == "gangnam" for r in items):
+            if not is_dong_center(inst, None):
+                continue  # 강남 체육시설·평생학습관 등: 신규 창 규칙이 없으니 패턴 행도 만들지 않는다
             zone = _gangnam_zone(inst, items)
             out.append({
                 "institution": inst,
