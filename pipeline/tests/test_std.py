@@ -96,11 +96,11 @@ def test_fetch_catalog_paginates_and_caches(monkeypatch, tmp_path):
     html = (FIX / "catalog_page.html").read_bytes()
     calls = []
 
-    def fake_get(url, **kw):
+    def fake_post(url, data=None, **kw):
         calls.append(url)
-        return html if "currentPage=1" in url else b"<html></html>"
+        return html if data["pageIndex"] == "1" else b"<html></html>"
 
-    monkeypatch.setattr(http, "get", fake_get)
+    monkeypatch.setattr(http, "post", fake_post)
     cat = std.fetch_catalog(raw_dir=tmp_path)
     assert len(cat) == 2 and len(calls) == 2
     assert json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8")) == cat
@@ -111,7 +111,7 @@ def test_fetch_catalog_paginates_and_caches(monkeypatch, tmp_path):
 
 
 def test_fetch_catalog_empty_raises(monkeypatch, tmp_path):
-    monkeypatch.setattr(http, "get", lambda url, **kw: b"<html></html>")
+    monkeypatch.setattr(http, "post", lambda url, data=None, **kw: b"<html></html>")
     with pytest.raises(std.StdCatalogError):
         std.fetch_catalog(raw_dir=tmp_path)
 
@@ -142,3 +142,9 @@ def test_download_flow_skip_and_failure(monkeypatch, tmp_path):
     n = len(calls)
     paths2 = std.download(catalog[:2], tmp_path, f)  # 이미 있으면 스킵
     assert len(paths2) == 2 and len(calls) == n
+
+
+def test_badge_prefix_stripped():
+    assert std.region_from_filename("파일데이터 서울특별시_강남구_평생학습강좌") == ("서울특별시", "강남구")
+    html = '<table><tr><td><a data-public-pk="uddi:1962a422-149e-42f0-9f5d-fed83b54d303">파일데이터 서울특별시_강남구_평생학습강좌</a></td></tr></table>'
+    assert std.parse_catalog_page(html)[0]["name"] == "서울특별시_강남구_평생학습강좌"

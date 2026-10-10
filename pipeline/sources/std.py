@@ -12,7 +12,7 @@ from pathlib import Path
 from pipeline.common import http
 from pipeline.common.failures import Failures
 from pipeline.common.parse import (
-    make_id, normalize_sido, normalize_sigungu, parse_date, parse_fee, parse_time,
+    SIDO_FULL, make_id, normalize_sido, normalize_sigungu, parse_date, parse_fee, parse_time,
     parse_weekdays, read_csv_rows, time_bucket, weekday_bits,
 )
 
@@ -20,6 +20,7 @@ SOURCE = "std"
 PUBLIC_DATA_PK = "15013110"
 DATASET_URL = f"https://www.data.go.kr/data/{PUBLIC_DATA_PK}/standard.do"
 CATALOG_URL = f"https://www.data.go.kr/tcs/dss/selectStdDataDetailView.do?publicDataPk={PUBLIC_DATA_PK}"
+CATALOG_LIST_URL = "https://www.data.go.kr/tcs/dss/selectStdDataDetailView.do"  # 쪽 이동은 POST(pageIndex), 쪽당 5건
 META_URL = (
     "https://www.data.go.kr/tcs/dss/selectFileDataDownload.do"
     "?publicDataPk={pk}&publicDataDetailPk={uddi}&fileDetailSn=1"
@@ -51,6 +52,7 @@ ALWAYS_RE = re.compile(r"상시|수시|연중")
 ONLINE_RE = re.compile(r"온라인|비대면|원격|사이버")
 ALWAYS_OPEN_ENDS = {"2099-12-31", "9999-12-31"}
 UDDI_RE = re.compile(r"uddi:[0-9a-fA-F-]{36}(?:_\d+)?")
+BADGE_RE = re.compile(r"^(?:(?:파일데이터|오픈API|링크)\s*)+")  # 목록 칸의 유형 배지 글자
 DATE_IN_TEXT = re.compile(r"\d{4}[-./]\d{1,2}[-./]\d{1,2}")
 DONG_RE = re.compile(r"([가-힣]{1,6}?\d?동)(?=주민센터|행정복지|자치|복지|문화|청사|[^가-힣]|$)")
 DONG_STOP = {"공동", "이동", "운동", "활동", "자동", "행동", "수동", "연동", "합동", "협동", "미동"}
@@ -109,7 +111,7 @@ def parse_catalog_page(html: str) -> list[dict]:
         text_cells = [c for c in cells if not DATE_IN_TEXT.fullmatch(c)]
         found.append({
             "uddi": m.group(0),
-            "name": text_cells[0] if text_cells else "",
+            "name": BADGE_RE.sub("", text_cells[0]) if text_cells else "",
             "org": text_cells[1] if len(text_cells) > 1 else "",
             "update_date": parse_date(date_m.group(0)) if date_m else None,
         })
@@ -120,15 +122,19 @@ def fetch_catalog(failures: Failures | None = None, *, raw_dir: Path = RAW_DIR,
                   refresh: bool = False) -> list[dict]:
     """「표준데이터 목록」을 페이지 순회해 uddi 전량을 모은다. raw_dir/catalog.json 에 캐시.
 
-    페이지 파라미터(currentPage)·행 구조는 실 페이지에서 확인 필요. 0건이면 오류.
+    쪽 이동은 POST pageIndex(쪽당 5건, 2026-10-10 실페이지 확인). 0건이면 오류.
     """
     cache = Path(raw_dir) / "catalog.json"
     if cache.exists() and not refresh:
-        return json.loads(cache.read_text(encoding="utf-8"))
+        cached = json.loads(cache.read_text(encoding="utf-8"))
+        for it in cached:
+            it["name"] = BADGE_RE.sub("", it.get("name", ""))
+        cache.write_text(json.dumps(cached, ensure_ascii=False, indent=2), encoding="utf-8")
+        return cached
     seen: dict[str, dict] = {}
     for page in range(1, MAX_PAGES + 1):
-        url = f"{CATALOG_URL}&currentPage={page}"
-        html = http.get(url, referer=DATASET_URL, source=SOURCE, failures=failures).decode(
+        html = http.post(CATALOG_LIST_URL, {"pageIndex": str(page), "publicDataPk": PUBLIC_DATA_PK, "searchKeyword2": ""},
+                         referer=DATASET_URL, source=SOURCE, failures=failures).decode(
             "utf-8", errors="replace")
         new = [it for it in parse_catalog_page(html) if it["uddi"] not in seen]
         if not new:
@@ -183,7 +189,7 @@ def download(catalog: list[dict], raw_dir: Path = RAW_DIR,
 
 def region_from_filename(stem: str) -> tuple[str, str]:
     """파일명 → (시도, 시군구). 교육청 파일은 시군구 ''."""
-    parts = stem.replace("_평생학습강좌", "").split("_")
+    parts = BADGE_RE.sub("", stem).replace("_평생학습강좌", "").split("_")
     first = parts[0]
     if first.endswith("교육청"):
         return first[: -len("교육청")], ""
@@ -247,6 +253,7 @@ def normalize(path: Path, *, collected_at: str, failures: Failures | None = None
         if missing and failures is not None:
             failures.add(SOURCE, "schema_mismatch", str(path), "없는 컬럼: " + ",".join(missing))
     out: list[dict] = []
+    unknown_sido: set[str] = set()
     for raw in rows:
         r = {(k or "").replace("﻿", "").strip(): (v or "").strip()
              for k, v in raw.items() if k is not None}
@@ -266,6 +273,10 @@ def normalize(path: Path, *, collected_at: str, failures: Failures | None = None
         fee_raw = r.get("수강료", "")
         fee_won, is_free, fee_period = parse_fee(fee_raw) if fee_raw else (None, 0, None)
         sido, sigungu = _region(stem, address)
+        if sido and sido not in SIDO_FULL and sido not in unknown_sido:
+            unknown_sido.add(sido)
+            if failures is not None:
+                failures.add(SOURCE, "unknown_sido", str(path), sido)
         bucket = time_bucket(start_time)
         homepage = r.get("홈페이지주소") or None
         row = dict.fromkeys(COURSE_KEYS)
