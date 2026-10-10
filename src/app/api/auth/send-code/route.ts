@@ -26,5 +26,8 @@ export async function POST(req: NextRequest) {
   if (r.reason === "failed") {
     return NextResponse.json({ ok: false, reason: "failed" }, { status: 502 });
   }
+  if (r.reason === "unavailable") {
+    return NextResponse.json({ ok: false, reason: "unavailable" }, { status: 503 });
+  }
   return NextResponse.json({ ok: false, reason: "invalid" }, { status: 400 });
 }

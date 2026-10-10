@@ -55,16 +55,20 @@ function isoAgo(ms: number, now = Date.now()): string {
 
 export type RequestOtpResult =
   | { ok: true; devCode?: string }
-  | { ok: false; reason: "invalid" | "rate" | "failed"; retryAfterSec?: number };
+  | { ok: false; reason: "invalid" | "rate" | "failed" | "unavailable"; retryAfterSec?: number };
 
 /**
  * 인증번호를 만들어 문자로 보낸다. 상한은 sms_log(kind='otp') 집계.
  * devCode 는 console 공급자 + DIDIM_OTP_ECHO=1 + VERCEL_ENV 없음(로컬·CI)일 때만.
  * 'failed' 는 솔라피 발송 실패(§3 에 없던 경우라 추가).
+ * 'unavailable' 은 Vercel(Preview·Production)인데 솔라피 키가 없어 문자를 보낼 수 없는 때 —
+ * 코드를 만들지도, 기록하지도 않는다(오지 않는 문자를 기다리게 하지 않는다. decisions-pending 5).
  */
 export async function requestOtp(phone: string): Promise<RequestOtpResult> {
   const p = normalizePhone(phone);
   if (!p) return { ok: false, reason: "invalid" };
+  const provider = getSmsProvider();
+  if (provider === "console" && process.env.VERCEL_ENV) return { ok: false, reason: "unavailable" };
   await ensureAppTables();
 
   const now = Date.now();
@@ -73,7 +77,6 @@ export async function requestOtp(phone: string): Promise<RequestOtpResult> {
   const t1h = isoAgo(OTP_LIMITS.all1h.windowSec * 1000, now);
   const t1d = isoAgo(OTP_LIMITS.phone1d.windowSec * 1000, now);
   const code = genCode();
-  const provider = getSmsProvider();
 
   // 상한 집계와 기록 예약을 **한 문장**으로 한다(SQLite 는 문장 단위로 직렬화되므로 동시 요청이 상한을 넘지 못한다).
   // 행이 들어갔을 때만 코드를 만들고 보낸다. 실패(failed) 행도 집계에 들어가 반복 요청을 막는다.

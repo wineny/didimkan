@@ -109,6 +109,8 @@ export default function LoginForm({
         setError(C.errRate);
       } else if (data.reason === "failed") {
         setError(C.errSendFailed);
+      } else if (res.status === 503 || data.reason === "unavailable") {
+        setError(C.errUnavailable);
       } else {
         setError(C.errInvalidPhone);
       }

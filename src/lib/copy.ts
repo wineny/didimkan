@@ -182,6 +182,7 @@ export const M2_COPY = {
     errRate: "잠시 뒤 다시 보내 주세요",
 
     errSendFailed: "문자를 보내지 못했어요. 잠시 뒤 다시 해 주세요",
+    errUnavailable: "문자 로그인은 준비 중이에요. 지금은 기관에 전화하거나 사이트에서 신청해 주세요",
     errCode: "숫자 6자리를 입력해 주세요",
     errNetwork: "연결이 잘 안 돼요. 잠시 뒤 다시 눌러 주세요",
     errNoAlert: "이 강좌는 알림을 받을 수 없어요. 강좌 화면으로 돌아가 확인해 주세요",

@@ -143,7 +143,7 @@ vercel --global-config ~/.vercel-ynr0402 --prod        # 프로덕션 배포
 | 이름 | 어디 | 뜻 |
 |---|---|---|
 | `CRON_SECRET` | Vercel·`.env.local` | 크론 호출 인증. Vercel 이 `Authorization: Bearer` 로 보냅니다 |
-| `SOLAPI_API_KEY` `SOLAPI_API_SECRET` `SOLAPI_SENDER` | Vercel | 솔라피 문자 발송. 셋 다 있어야 보냅니다. 없으면 `console` 공급자(발송 없이 기록만, `sms_log.status='dry'`) |
+| `SOLAPI_API_KEY` `SOLAPI_API_SECRET` `SOLAPI_SENDER` | Vercel | 솔라피 문자 발송. 셋 다 있어야 보냅니다. 없으면 `console` 공급자(발송 없이 기록만, `sms_log.status='dry'`). **Vercel(`VERCEL_ENV` 있음)에서 키가 없으면 `/login` 은 번호를 받자마자 「문자 로그인은 준비 중이에요」 를 보여 주고 멈춥니다**(`send-code` 503 `unavailable`, 코드·기록 없음) — 오지 않는 문자를 기다리게 하지 않기 위해서입니다 |
 | `DIDIM_OTP_ECHO` | 로컬·CI 만 | `1` 이면 인증번호를 API 응답에 돌려줍니다(e2e 용). Vercel(`VERCEL_ENV` 있음)이거나 DB 가 `file:` 이 아니면 무시됩니다 |
 | `DIDIM_NOW` | e2e | `YYYY-MM-DDTHH:MM`. `DIDIM_ALLOW_TODAY_OVERRIDE=1` 일 때만 |
 | `DIDIM_INSECURE_COOKIE` | — | `1` 이면 세션 쿠키 `secure` 를 끕니다(https 가 아닌 곳에서 production 빌드를 돌릴 때만. Vercel 에서는 무시) |
