@@ -55,6 +55,13 @@ beforeAll(async () => {
     insert({ id: "o1", sigungu: "서초구", dong: "x", applyStart: "2026-09-01", applyEnd: "2026-09-10" }, 1),
     insert({ id: "o2", sigungu: "강남구", dong: "y", applyStart: "2026-10-01", applyEnd: "2026-10-30" }, 1),
   ], "write");
+  // 1단 접수 중 700행. id 가 가장 큰 p699 의 마감이 가장 가깝다 → id 순으로 600 에서 자르면 빠진다.
+  const online: InStatement[] = [];
+  for (let i = 0; i < 700; i++) {
+    const applyEnd = i === 699 ? addDays(TODAY, 1) : "2026-12-31";
+    online.push(insert({ id: `p${pad(i)}`, sigungu: "x", dong: "x", applyStart: "2026-10-01", applyEnd }, 1));
+  }
+  await client.batch(online, "write");
 
   process.env.TURSO_DATABASE_URL = url;
   ({ listCourses } = await import("./queries"));
@@ -89,9 +96,16 @@ describe("listCourses 후보 상한", () => {
 });
 
 describe("listCourses 1단", () => {
-  it("지역 순위 없이도 조회되고 접수 중이 먼저 온다", async () => {
+  it("지역 순위 없이도 조회되고 접수 중이 먼저, 마감은 뒤", async () => {
     const out = await listCourses({ stair: 1, area: AREA, today: TODAY, limit: 10 });
-    expect(out.map((c) => c.id)).toEqual(["o2", "o1"]);
+    expect(out.map((c) => c.id).slice(0, 2)).toEqual(["p699", "o2"]);
+    expect(out.every((c) => c.status.status === "open")).toBe(true);
+    const all = await listCourses({ stair: 1, area: AREA, today: TODAY, limit: 702 });
+    expect(all.at(-1)?.id).toBe("o1");
+  });
+  it("후보 상한 600 을 넘어도 마감 가장 가까운 행(id 가장 큼)이 1번", async () => {
+    const [first] = await listCourses({ stair: 1, today: TODAY, limit: 1 });
+    expect(first.id).toBe("p699");
   });
   it("지역을 안 고른 2단도 조회된다", async () => {
     const out = await listCourses({ stair: 2, today: TODAY, limit: 3 });

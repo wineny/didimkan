@@ -228,7 +228,7 @@ def apply_status(row: dict, today: date) -> str:
 
 
 def gangnam_zone(institution: str | None) -> int | None:
-    """강남 권역(1·2). 동 복합문화센터·커뮤니티센터(is_dong_center=1)만 판정한다.
+    """강남 권역(1·2). 기관명만으로 is_dong_center(institution, None)=1 인 곳(동 복합문화센터·커뮤니티센터)만 판정한다.
     체육시설·평생학습관 등은 이름에 동 이름이 들어 있어도(「청담 평생학습관」) 접수 창이 달라 None."""
     if not is_dong_center(institution, None):
         return None

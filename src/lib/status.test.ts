@@ -68,7 +68,7 @@ describe("applyStatus 세부", () => {
   it("시작일 없이 마감일만 있고 안 지났으면 날짜를 지어내지 않는다", () => {
     expect(applyStatus(course({ applyEnd: "2026-10-12" }), T)).toEqual({ status: "unknown", isEstimate: false });
   });
-  it("시작일이 없으면 마감일이 있어도 예측을 쓴다(5번)", () => {
+  it("시작일이 없으면 마감일이 있어도 예측을 쓴다(7번)", () => {
     const p = { nextOpenEstimate: "2026-10-25", basisCount: 4, ruleNote: null };
     expect(applyStatus(course({ applyEnd: "2026-10-30" }), T, p)).toMatchObject({
       status: "before", isEstimate: true, date: "2026-10-25", estimateDate: "2026-10-25", basisCount: 4,

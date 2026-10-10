@@ -183,6 +183,14 @@ def test_guard_exactly_half_passes(tmp_path, monkeypatch):
     assert code == 0
 
 
+def test_remote_count_other_error_stops(tmp_path, monkeypatch, capsys):
+    # 「no such table」 이 아닌 오류면 행 수를 모르는 것 → 중단(--force 여도 확인 단계에서 끝)
+    code, sent = run_http(tmp_path, monkeypatch, stmt_error_on=(pt.REMOTE_COUNT_SQL,), args=("--force",))
+    assert code == 1
+    assert [kind(b) for _, b, _ in sent] == ["check"]
+    assert "원격 행 수 확인 실패" in capsys.readouterr().err
+
+
 def test_guard_force(tmp_path, monkeypatch):
     code, sent = run_http(tmp_path, monkeypatch, remote_before=1000, args=("--force",))
     assert code == 0

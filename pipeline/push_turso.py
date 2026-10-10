@@ -155,11 +155,15 @@ def local_source_counts(conn: sqlite3.Connection) -> dict[str, int]:
 
 
 def remote_course_count(endpoint: str, token: str) -> int | None:
-    """원격 기존 courses 행 수. 표가 없으면(첫 배포) None. HTTP 오류는 그대로 올린다."""
+    """원격 기존 courses 행 수. 표가 없으면(첫 배포, 「no such table」) None.
+    그 밖의 문장 오류·HTTP 오류는 RuntimeError 로 올려 중단한다(행 수를 모르는 채로 덮어쓰지 않게)."""
     data = post_raw(endpoint, token, {"requests": [execute(REMOTE_COUNT_SQL), {"type": "close"}]})
     res = data["results"][0]
-    if stmt_error(res):
-        return None
+    err = stmt_error(res)
+    if err is not None:
+        if "no such table" in err.lower():
+            return None
+        raise RuntimeError(f"원격 courses 행 수 조회 오류: {err}")
     return int(res["response"]["result"]["rows"][0][0]["value"])
 
 

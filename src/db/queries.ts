@@ -66,14 +66,17 @@ function areaRankSql(stair: Stair, area: Area): SQL | null {
 }
 
 /**
- * 마감이면 1(contract §10 3·5·8번): 접수 마감일 지남, 또는 마감일·시작일 중 하나가 없고 강좌 종료일 지남.
- * 연중·수시와 날짜가 거꾸로인 행(2번 unknown)은 0.
+ * 마감이면 1(contract §10 3·5·8번): 접수 마감일 지남, 또는 강좌 종료일 지남 ∧ (시작일 없음 ∨ 마감일 없이 시작일 ≤ today).
+ * 연중·수시와 날짜가 거꾸로인 행(2번 unknown)은 0. 시작일이 미래면(4번 before) 종료일이 지나도 0.
+ * 한계: 시작일 없이 예측(7번 before)이 있는 행도 종료일이 지났으면 여기서는 1 로 뒤에 놓인다
+ * (예측은 enrollment_patterns 조인이 필요해 SQL 에서 보지 않음). 최종 상태·순서는 sortCourses 가 정한다.
  */
 function closedSql(today: string): SQL {
   return sql`CASE WHEN ${courses.isAlwaysOpen} = 1 THEN 0
     WHEN ${courses.applyStart} IS NOT NULL AND ${courses.applyEnd} IS NOT NULL AND ${courses.applyStart} > ${courses.applyEnd} THEN 0
     WHEN ${courses.applyEnd} IS NOT NULL AND ${courses.applyEnd} < ${today} THEN 1
-    WHEN (${courses.applyStart} IS NULL OR ${courses.applyEnd} IS NULL) AND ${courses.endDate} IS NOT NULL AND ${courses.endDate} < ${today} THEN 1
+    WHEN (${courses.applyStart} IS NULL OR (${courses.applyEnd} IS NULL AND ${courses.applyStart} <= ${today}))
+      AND ${courses.endDate} IS NOT NULL AND ${courses.endDate} < ${today} THEN 1
     ELSE 0 END`;
 }
 
@@ -99,6 +102,9 @@ export async function listCourses({
       ...[areaRankSql(stair, area)].filter((x): x is SQL => x !== null),
       closedSql(today),
       notOpenSql(today),
+      sql`${courses.applyEnd} IS NULL`, // 마감일 없음은 뒤로
+      asc(courses.applyEnd),
+      asc(courses.applyStart),
       asc(courses.id),
     )
     .limit(Math.max(CANDIDATE_CAP, offset + limit));
