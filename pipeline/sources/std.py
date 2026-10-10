@@ -222,6 +222,9 @@ def _is_always_open(method: str, start: str | None, end: str | None, raw_dates: 
         return 1
     if end in ALWAYS_OPEN_ENDS:
         return 1
+    # contract §5: 접수 기간이 한 해 전체(1/1 ~ 12/31)면 상시
+    if start and end and start[:4] == end[:4] and start[5:] == "01-01" and end[5:] == "12-31":
+        return 1
     return 0
 
 
