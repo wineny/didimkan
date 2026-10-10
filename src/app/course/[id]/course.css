@@ -1,0 +1,66 @@
+/* ③ 강좌 카드 전용 (B6). globals.css 는 건드리지 않는다. */
+.v4 .c-main { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.v4 .c-back { display: inline-flex; align-items: center; gap: 0.1765rem; align-self: flex-start; min-height: 2.8235rem; margin-left: -0.2353rem; padding-right: 0.5882rem; color: var(--text); text-decoration: none; font: 600 1rem/1 Pretendard, sans-serif; }
+.v4 .c-back:focus-visible, .v4 .c-tel:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.v4 .c-hero { height: 9.4118rem; margin-top: 0.1176rem; }
+.v4 .c-hero.nophoto { background: var(--surface); }
+.v4 .c-hero.nophoto .scrim { background: none; }
+.v4 .c-hero.nophoto .txt { color: var(--text); }
+.v4 .c-hero .ht { font-size: 1.4118rem; }
+.v4 .c-hero .hs { font-size: 0.9412rem; }
+.v4 .c-meta { margin: 0.4706rem 0 0; }
+/* 신호 타일 6개 — 2열 */
+.v4 .c-tiles { margin-top: 0.7059rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4706rem; }
+.v4 .c-tile { border-radius: 0.8235rem; padding: 0.4706rem 0.8235rem 0.5294rem; background: var(--surface); }
+.v4 .c-tile .k { font: 500 0.8824rem/1.3 Pretendard, sans-serif; color: var(--text-2); }
+.v4 .c-tile .v { margin-top: 0.1765rem; font: 800 1rem/1.3 Pretendard, sans-serif; letter-spacing: -0.03em; }
+.v4 .c-tile.good { background: var(--accent-tint); }
+.v4 .c-tile.neutral { background: var(--white); box-shadow: inset 0 0 0 1px var(--line); }
+.v4 .c-tile.muted { background: var(--surface); }
+.v4 .c-tile.muted .v { color: var(--text-2); font-weight: 700; }
+.v4 .c-info { margin-top: 0.7059rem; }
+/* 접수 블록 */
+.v4 .c-apply { margin-top: 1.0588rem; }
+.v4 .c-apply-row { margin-top: 0.4706rem; }
+.v4 .c-note { margin: 0.4706rem 0 0; font: 400 1rem/1.5 Pretendard, sans-serif; color: var(--text-2); }
+.v4 .c-bigphone { margin: 0.2353rem 0 0; font: 800 1.6471rem/1.3 Pretendard, sans-serif; letter-spacing: -0.02em; }
+.v4 .c-signal { margin-top: 0.9412rem; font-size: 1rem; }
+.v4 .rev .q .say { color: var(--text-2); }
+.v4 .rev { margin-bottom: 0.2353rem; }
+/* 전화 */
+.v4 .c-tel { margin-top: 1.0588rem; display: flex; flex-direction: column; gap: 0.2353rem; border-radius: 0.9412rem; background: var(--surface); padding: 0.8235rem 1.0588rem; color: var(--text); text-decoration: none; font: 500 0.9412rem/1.3 Pretendard, sans-serif; }
+.v4 .c-tel b { font: 800 1.6471rem/1.2 Pretendard, sans-serif; letter-spacing: -0.02em; }
+.v4 .c-nophone { margin-top: 1.0588rem; }
+/* 아래 두 버튼 */
+.v4 .c-acts { flex: 0 0 auto; padding: 0.8235rem 1.1765rem 0; display: flex; flex-direction: column; gap: 0.5882rem; }
+.v4 .c-acts .cta { margin: 0; width: 100%; }
+.v4 .c-acts .c-noapply { margin: 0; text-align: center; }
+/* 바텀시트 */
+.v4 .c-scrim { position: absolute; inset: 0; z-index: 10; background: rgba(15, 20, 30, 0.45); display: flex; align-items: flex-end; }
+.v4 .c-sheet { width: 100%; background: var(--white); border-radius: 1.4118rem 1.4118rem 0 0; padding: 1.4118rem 1.1765rem 1.4118rem; display: flex; flex-direction: column; gap: 0.5882rem; outline: none; }
+.v4 .c-sheet-t { margin: 0 0 0.4706rem; font: 700 1.1765rem/1.5 Pretendard, sans-serif; letter-spacing: -0.03em; }
+.v4 .c-sheet .c-sheet-btn { margin: 0; width: 100%; }
+
+/* 크게 보기 */
+html[data-big] .v4 .c-hero { height: 6.1538rem; }
+html[data-big] .v4 .c-hero .ht { font-size: 1.2308rem; }
+html[data-big] .v4 .c-hero .hs { font-size: 0.8462rem; }
+html[data-big] .v4 .c-tiles { grid-template-columns: 1fr; }
+html[data-big] .v4 .c-tile .k, html[data-big] .v4 .meta { font-size: 0.8462rem; }
+html[data-big] .v4 .c-tile .v { font-size: 1rem; }
+html[data-big] .v4 .grid { grid-template-columns: 1fr; }
+html[data-big] .v4 .cell .k, html[data-big] .v4 .cell .d { font-size: 0.8462rem; }
+html[data-big] .v4 .cell .v { font-size: 1rem; }
+html[data-big] .v4 .c-note, html[data-big] .v4 .c-signal, html[data-big] .v4 .rev .q .say { font-size: 0.8462rem; }
+html[data-big] .v4 .c-bigphone, html[data-big] .v4 .c-tel b { font-size: 1.6923rem; }
+html[data-big] .v4 .c-tel { font-size: 0.8462rem; }
+html[data-big] .v4 .c-back { font-size: 0.8462rem; min-height: 2rem; }
+html[data-big] .v4 .c-acts { padding: 0.5rem 0.7692rem 0; gap: 0.3846rem; }
+html[data-big] .v4 .c-sheet-t { font-size: 0.9231rem; }
+html[data-big] .v4 .c-sheet { padding: 0.9231rem 0.7692rem; gap: 0.3846rem; }
+html[data-big] .v4 .c-acts .sbtn, html[data-big] .v4 .c-acts .cta, html[data-big] .v4 .c-sheet .c-sheet-btn { height: 64px; min-height: 64px; }
+html[data-big] .v4 .c-acts .sbtn { line-height: 1.2; padding: 0.3846rem 0.5rem; text-align: center; height: auto; min-height: 64px; }
+html[data-big] .v4 .c-acts .sbtn svg { flex: none; }
+.v4 .c-info { margin-top: 0.9412rem; }
+.v4 .cell.muted .v { color: var(--text-2); font-weight: 700; }
+.v4 .c-info .c-signal { margin-top: 0.7059rem; }
