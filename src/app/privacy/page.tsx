@@ -9,12 +9,12 @@ export default function PrivacyPage() {
     <Shell>
       <main className="m-main m-priv" aria-label={C.h1}>
         <div className="body">
-          <h1 className="h1 gap-8">
+          <h1 className="h1 gap-h1">
             {C.h1}
             <span className="m-draft">{C.draft}</span>
           </h1>
           <p className="sub">{C.sub}</p>
-          <div className="gap-24" style={{ borderTop: "1px solid var(--line)" }}>
+          <div className="p-card gap-24">
             {C.rows.map((r) => (
               <div className="kv" key={r.k}>
                 <div className="k">{r.k}</div>

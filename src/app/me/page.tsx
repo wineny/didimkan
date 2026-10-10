@@ -23,7 +23,7 @@ export default async function MePage() {
     <Shell>
       <main className="m-main" aria-label={C.h1}>
         <div className="body">
-          <h1 className="h1 gap-8">{C.h1}</h1>
+          <h1 className="h1 gap-h1">{C.h1}</h1>
           <p className="sub">{C.sub}</p>
 
           <div className="sec gap-24">
@@ -42,7 +42,7 @@ export default async function MePage() {
             return (
               <article
                 key={a.id}
-                className={`info m-card${a.isOn ? "" : " is-off"}`}
+                className={`p-card m-card${a.isOn ? "" : " is-off"}`}
                 data-alert
                 data-alert-id={a.id}
                 data-on={a.isOn ? "true" : "false"}
@@ -53,7 +53,7 @@ export default async function MePage() {
                 </div>
                 {line ? <div className="meta">{line}</div> : null}
                 {course ? (
-                  <div style={{ marginTop: "0.5882rem", borderTop: "1px solid var(--line)" }}>
+                  <div className="m-card-rows">
                     <div className="kv">
                       <div className="k">{C.nextSms}</div>
                       <div className="v">{a.isOn ? next : C.offNext}</div>
@@ -82,9 +82,11 @@ export default async function MePage() {
             );
           })}
 
-          <div className="kv gap-24">
-            <div className="k">{C.together}</div>
-            <div className="v soft">{C.soon}</div>
+          <div className="p-card gap-12">
+            <div className="kv">
+              <div className="k">{C.together}</div>
+              <div className="v soft">{C.soon}</div>
+            </div>
           </div>
 
           <MeActions maskedPhone={maskPhone(session.phone)} />

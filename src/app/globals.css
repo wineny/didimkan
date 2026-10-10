@@ -311,3 +311,119 @@ html[data-big] .v4 .m-btns { flex-direction: column; gap: 0.3846rem; }
 html[data-big] .v4 .info { padding-left: 0.6923rem; padding-right: 0.6923rem; }
 /* 문자 미리보기 뒤로 가기: 누를 자리 3rem 정사각 */
 .v4 .m-smsback { display: inline-flex; align-items: center; justify-content: center; min-width: 3rem; min-height: 3rem; margin-left: -0.5rem; }
+
+/* ── v5 A2 나머지 화면 (2026-10-10): 01 상태 · 동네 · 로그인 · 등록 완료 · 내 알림 · 문자 · 개인정보 ──
+ * 홈·강좌와 같은 말투: 종이 카드(#FFFDF9 · 1px 선 · 22px 모서리 · 옅은 그림자), 테라코타 작은 라벨(15px 700 · .06em),
+ * 숲색 값, 숲색 알약 버튼 / 숲색 테두리 알약. 화면당 숲색 강조 카드 하나까지. rem = px ÷ 17 */
+.v4 .gap-h1 { margin-top: 1.1765rem; }
+.v4 .gap-12 { margin-top: 0.7059rem; }
+/* 버튼: 주 = 숲색 알약, 보조 = 숲색 테두리 알약 (강좌 화면 하단 버튼과 같은 모양) */
+.v4 .cta { border-radius: 58.8235rem; }
+.v4 .cta:not(:disabled):active { background: var(--accent-pressed); }
+.v4 .sbtn { border: 1.5px solid var(--accent); border-radius: 58.8235rem; background: var(--card); color: var(--accent); }
+.v4 .sbtn:disabled { border-color: var(--line-strong); color: var(--text-3); }
+.v4 .lbtn { color: var(--accent); font-weight: 600; }
+/* 종이 카드 */
+.v4 .p-card { flex: none; padding: 0 1.1765rem; border-radius: 1.2941rem; background: var(--card); border: 1px solid var(--line); box-shadow: 0 0.8235rem 1.7647rem -1.2941rem var(--shadow-card); overflow-wrap: anywhere; }
+/* 작은 라벨: 테라코타 15px 700 */
+.v4 .sec, .v4 .m-kick, .v4 .kv .k { font: 700 0.8824rem/1.4 Pretendard, sans-serif; letter-spacing: 0.06em; color: var(--terra); }
+.v4 .m-kick { margin: 1.1765rem 0 0; }
+/* 라벨 + 값 줄: 카드 안에서는 얇은 선으로 나눈다 */
+.v4 .kv { padding: 0.9412rem 0; }
+.v4 .kv .v { margin-top: 0.3529rem; font: 800 1.0588rem/1.45 Pretendard, sans-serif; letter-spacing: -0.02em; color: var(--accent); }
+.v4 .kv .s { color: var(--text-2); font-weight: 600; }
+.v4 .kv .v.soft, .v4 .kv .v .soft { font-weight: 500; color: var(--text-2); }
+
+/* 01 상태: 종이 카드 선택지 3개, 왼쪽에 3막대 계단 그림(장식) · 오른쪽 라디오 */
+.v4 .opts:has(> button.opt) { border-top: 0; display: flex; flex-direction: column; gap: 0.6471rem; }
+.v4 .opts > button.opt { align-items: center; gap: 0.8824rem; padding: 1.0588rem 1.0588rem 1.0588rem 1.1765rem; border: 1px solid var(--line); border-radius: 1.2941rem; background: var(--card); box-shadow: 0 0.8235rem 1.7647rem -1.2941rem var(--shadow-card); }
+.v4 .opts > button.opt[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-tint); }
+.v4 .opt .opt-tx { flex: 1; min-width: 0; }
+.v4 .opt-st { flex: none; display: flex; align-items: flex-end; gap: 0.1765rem; width: 2.1176rem; height: 1.6471rem; padding-bottom: 0.0588rem; border-bottom: 2px solid var(--text-2); }
+.v4 .opt-st i { flex: 1; border-radius: 0.1176rem 0.1176rem 0 0; background: var(--line-strong); }
+.v4 .opt-st i:nth-child(1) { height: 0.5294rem; }
+.v4 .opt-st i:nth-child(2) { height: 1rem; }
+.v4 .opt-st i:nth-child(3) { height: 1.4706rem; }
+.v4 .opt-st.n1 i:nth-child(1), .v4 .opt-st.n2 i:nth-child(2), .v4 .opt-st.n3 i:nth-child(3) { background: var(--terra); }
+.v4 .opts > button.opt .radio { background: var(--card); }
+.v4 .note { font-size: 1rem; }
+
+/* 동네: 종이 카드 하나 안의 행 목록, 꺾쇠 테라코타 */
+.v4 .opts.p-list { border-top: 0; padding: 0 1.1765rem; border-radius: 1.2941rem; background: var(--card); border: 1px solid var(--line); box-shadow: 0 0.8235rem 1.7647rem -1.2941rem var(--shadow-card); }
+.v4 .opts.p-list > button.li { min-height: 3.2941rem; padding: 0 0.1176rem; }
+.v4 .opts.p-list > button.li:last-child { border-bottom: 0; }
+.v4 .p-list .chev { color: var(--terra); }
+
+/* 로그인: 고른 강좌 카드 · 입력칸(카드 면 + 1.5px 선, 포커스 숲색) · 2단계 안내 줄 */
+.v4 .m-pick { padding: 1.0588rem 1.1765rem 1.1765rem; }
+.v4 .m-pick .m-courseline { margin: 0.3529rem 0 0; color: var(--text); }
+.v4 .m-pick > .m-courseline:first-child { margin-top: 0; }
+.v4 .m-pick .m-pick-line { margin: 0.3529rem 0 0; font-size: 0.9412rem; }
+.v4 input.field { height: 3.5294rem; background: var(--card); border: 1.5px solid var(--line-strong); }
+.v4 input.field:focus { border-color: var(--accent); }
+.v4 .m-sent { margin-top: 1.4118rem; padding: 0.2353rem 0.4706rem 0.2353rem 1.0588rem; border-radius: 1.2941rem; background: var(--card); border: 1px solid var(--line); font: 600 1rem/1.45 Pretendard, sans-serif; color: var(--text); }
+.v4 .m-sent > span, .v4 .m-resend > span { min-width: 0; }
+.v4 .m-resend { margin-top: 0.4706rem; font: 500 1rem/1.45 Pretendard, sans-serif; color: var(--text-2); }
+.v4 .m-cool { margin: 0; text-align: right; }
+.v4 .m-row > .lbtn { flex: none; white-space: nowrap; }
+.v4 .m-nw { white-space: nowrap; }
+
+/* 등록 완료: 접수 날짜 요약 = 숲색 강조 카드 (홈 대표 강좌와 같은 면) */
+.v4 .m-hero { flex: none; padding: 1.4118rem 1.2941rem 0.2353rem; border-radius: 1.2941rem; background: var(--accent); color: var(--white); overflow-wrap: anywhere; }
+.v4 .m-hero-t { font: 700 1rem/1.5 Pretendard, sans-serif; }
+.v4 .m-hero-chip { display: inline-flex; align-items: center; min-height: 1.8824rem; margin-top: 0.4706rem; padding: 0.1176rem 0.7059rem; border-radius: 58.8235rem; background: var(--peach); color: #4A1D0B; font: 700 0.8824rem/1.2 Pretendard, sans-serif; }
+.v4 .m-hero .m-big { margin-top: 0.7059rem; font: 800 1.7647rem/1.25 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--white); }
+.v4 .m-hero-rows { margin-top: 0.9412rem; border-top: 1px solid rgba(255, 253, 249, 0.28); }
+.v4 .m-hero .kv { border-bottom-color: rgba(255, 253, 249, 0.28); }
+.v4 .m-hero .kv .k { color: var(--peach); }
+.v4 .m-hero .kv .v { color: var(--white); }
+.v4 .m-hero .kv .s, .v4 .m-hero .meta { color: #CFE0D8; }
+
+/* 내 알림 */
+.v4 .m-card { margin-top: 0.7059rem; padding: 1.1765rem 1.1765rem 1.1765rem; }
+.v4 .m-card + .m-card { margin-top: 0.7059rem; }
+.v4 .m-ct { margin-top: 0; }
+.v4 .m-card .meta { margin-top: 0.3529rem; font-size: 0.9412rem; }
+.v4 .m-card-rows { margin-top: 0.7059rem; border-top: 1px solid var(--line); }
+.v4 .m-card .kv:last-child { border-bottom: 1px solid var(--line); }
+.v4 .m-btns { margin-top: 0.9412rem; }
+.v4 .m-dots i { border-color: var(--terra); }
+.v4 .m-dots i.on { background: var(--terra); }
+.v4 .m-off { background: var(--surface); }
+.v4 .m-danger { margin-top: 1.4118rem; }
+.v4 .m-danger .sbtn { border-color: var(--line-strong); color: var(--text); }
+
+/* 바텀시트: 종이 면 + 알약 버튼 */
+.v4 .c-sheet { background: var(--card); padding-top: 1.6471rem; box-shadow: 0 -0.8235rem 1.7647rem -1.2941rem var(--shadow-card); }
+
+/* 문자 미리보기: 말풍선 = 카드 면 + 선, 날짜 줄 15px */
+.v4 .bub { background: var(--card); border: 1px solid var(--line); box-shadow: 0 0.8235rem 1.7647rem -1.2941rem var(--shadow-card); }
+.v4 .when { font-size: 0.8824rem; margin-top: 0.4706rem; }
+.v4 .m-smsbar .ava { background: var(--terra-soft); }
+
+/* 개인정보: 카드 하나 안의 행, 라벨 테라코타 15px · 내용 17px */
+.v4 .m-priv .kv .v { font: 500 1rem/1.6 Pretendard, sans-serif; letter-spacing: -0.01em; color: var(--text); }
+.v4 .m-draft { background: var(--terra-soft); color: var(--terra-ink); }
+
+/* 크게 보기 (px ÷ 26) */
+html[data-big] .v4 .gap-h1 { margin-top: 0.7692rem; }
+html[data-big] .v4 .p-card, html[data-big] .v4 .opts.p-list { padding-left: 0.6923rem; padding-right: 0.6923rem; border-radius: 0.8462rem; }
+html[data-big] .v4 .m-pick, html[data-big] .v4 .m-card { padding: 0.6154rem 0.6923rem 0.6923rem; }
+html[data-big] .v4 .kv { padding: 0.5385rem 0; }
+html[data-big] .v4 .kv .k, html[data-big] .v4 .sec, html[data-big] .v4 .m-kick { font-size: 0.7692rem; letter-spacing: 0.04em; }
+html[data-big] .v4 .opts > button.opt { gap: 0.4615rem; padding: 0.5385rem 0.6154rem; border-radius: 0.8462rem; }
+html[data-big] .v4 .opts:has(> button.opt) { gap: 0.4615rem; }
+html[data-big] .v4 .opt-st { display: none; }
+html[data-big] .v4 .opts.p-list > button.li { min-height: 2.4616rem; }
+html[data-big] .v4 .m-pick .m-pick-line, html[data-big] .v4 .m-card .meta { font-size: 0.7692rem; }
+html[data-big] .v4 .m-sent, html[data-big] .v4 .m-resend { font-size: 0.8462rem; }
+html[data-big] .v4 .m-sent { padding: 0.1538rem 0.3077rem 0.1538rem 0.6154rem; border-radius: 0.8462rem; }
+html[data-big] .v4 .m-hero { padding: 0.7692rem 0.6923rem 0.1538rem; border-radius: 0.8462rem; }
+html[data-big] .v4 .m-hero-t { font-size: 0.8462rem; }
+html[data-big] .v4 .m-hero-chip { min-height: 1.5385rem; padding: 0.1154rem 0.4615rem; font-size: 0.7692rem; }
+html[data-big] .v4 .m-hero .m-big { margin-top: 0.3846rem; font-size: 1.2308rem; }
+html[data-big] .v4 .m-hero-rows { margin-top: 0.5385rem; }
+html[data-big] .v4 .m-priv .kv .v { font-size: 0.8846rem; line-height: 1.5; }
+html[data-big] .v4 .m-btns { margin-top: 0.5385rem; }
+html[data-big] .v4 .m-danger { margin-top: 0.7692rem; }
+html[data-big] .v4 .when { font-size: 0.7692rem; }

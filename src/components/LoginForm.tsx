@@ -155,10 +155,12 @@ export default function LoginForm({
       <div className="m-form">
         <div className="body">
           <h1 className="h1 gap-h1">{C.confirmH1}</h1>
-          <p className="sub" role="status">
-            {course.title}
-          </p>
-          <p className="meta gap-8">{course.line}</p>
+          <div className="p-card m-pick gap-24">
+            <p className="m-courseline" role="status">
+              {course.title}
+            </p>
+            <p className="meta m-pick-line">{course.line}</p>
+          </div>
           {error ? (
             <p className="m-err" role="alert">
               {error}
@@ -195,14 +197,10 @@ export default function LoginForm({
         <p className="sub">{C.sub}</p>
 
         {course ? (
-          <div className="info gap-24" style={{ paddingBottom: "0.9412rem" }}>
-            <div className="sec" style={{ marginTop: "0.7059rem" }}>
-              {C.courseLabel}
-            </div>
+          <div className="p-card m-pick gap-24">
+            <div className="sec">{C.courseLabel}</div>
             <div className="m-courseline">{course.title}</div>
-            <div className="meta" style={{ marginTop: "0.1176rem" }}>
-              {course.line}
-            </div>
+            <div className="meta m-pick-line">{course.line}</div>
           </div>
         ) : null}
 
@@ -233,8 +231,8 @@ export default function LoginForm({
           </>
         ) : (
           <>
-            <div className="m-row">
-              <span className="sec" style={{ whiteSpace: "normal" }}>
+            <div className="m-row m-sent gap-24">
+              <span>
                 {formatDigits(digits)} {C.sentSuffix}
               </span>
               <button
@@ -249,7 +247,7 @@ export default function LoginForm({
                 {C.changePhone}
               </button>
             </div>
-            <label className="sec gap-8" htmlFor="login-code" style={{ display: "block" }}>
+            <label className="sec gap-24" htmlFor="login-code" style={{ display: "block" }}>
               {C.codeLabel}
             </label>
             <div className="gap-8">
@@ -266,14 +264,14 @@ export default function LoginForm({
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
               />
             </div>
-            <div className="m-row">
-              <span className="meta">{C.resendHint}</span>
+            <div className="m-row m-resend">
+              <span>{C.resendHint}</span>
               <button type="button" className="lbtn" data-resend disabled={busy || cool > 0} onClick={() => void sendCode()}>
                 {C.resend}
               </button>
             </div>
             {cool > 0 ? (
-              <p className="meta">
+              <p className="meta m-cool">
                 {cool}
                 {C.resendWaitSuffix}
               </p>

@@ -62,7 +62,7 @@ export default function WherePicker({ tree, stair }: Props) {
       <main className="body">
         <h1 className="h1 gap-h1">어느 시·도에 사세요?</h1>
         <p className="sub gap-sub">가까운 곳부터 이어드릴게요.</p>
-        <div className="opts gap-opts">
+        <div className="opts gap-opts p-list">
           {tree.sido.map((s) => (
             <button
               key={s.name}
@@ -89,7 +89,7 @@ export default function WherePicker({ tree, stair }: Props) {
       <main className="body">
         <h1 className="h1 gap-h1">어느 구·시예요?</h1>
         <p className="sub gap-sub">{sido}</p>
-        <div className="opts gap-opts">
+        <div className="opts gap-opts p-list">
           {(sidoNode?.sigungu ?? []).map((g) => (
             <button key={g.name} type="button" className="li" data-sigungu={g.name} onClick={() => pickGu(g.name)}>
               {g.name}

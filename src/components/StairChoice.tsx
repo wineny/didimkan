@@ -43,7 +43,7 @@ export default function StairChoice() {
   const resume = area.sido ? resumeHref(stair, area) : null;
   const resumeLabel = [area.sigungu ?? area.sido, area.dong].filter(Boolean).join(" ");
 
-  const items = ([1, 2, 3] as const).map((k) => ({ value: String(k), title: TITLES[k], sub: STAIR_SUB[k] }));
+  const items = ([1, 2, 3] as const).map((k) => ({ value: String(k), title: TITLES[k], sub: STAIR_SUB[k], stair: k }));
 
   return (
     <>
