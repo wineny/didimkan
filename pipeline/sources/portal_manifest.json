@@ -1,0 +1,811 @@
+[
+  {
+    "key": "seoul-mapo",
+    "sido": "서울특별시",
+    "sigungu": "마포구",
+    "public_data_pk": "15037729",
+    "kind": "link",
+    "url": "http://www.mapo.go.kr/site/main/openData/view?dataId=58",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동명": "dong",
+      "강의명": "title",
+      "수강대상": "target_raw",
+      "강의요일": "weekdays_raw",
+      "강의시간": "time_range",
+      "강의실": "venue",
+      "수강료(원) (분기 또는 월)": "fee_raw",
+      "문의": "institution_phone",
+      "데이터 기준일자": "data_date"
+    },
+    "filters": {},
+    "notes": "링크형. 포털 첨부는 2018~2019 xlsx 라 쓰지 않고 구청 openData 페이지의 CSV 버튼을 받는다. 기준 2026-02-27, 예정갱신 2027-02-27. 수강료 단위가 '(분기)'/'(월)'로 섞여 있다.",
+    "link_resolve": "csv_button"
+  },
+  {
+    "key": "seoul-gwangjin",
+    "sido": "서울특별시",
+    "sigungu": "광진구",
+    "public_data_pk": "15037963",
+    "kind": "link",
+    "url": "https://www.gwangjin.go.kr/atdrc/pgm/jachi/pgmList.do?menuNo=1200077",
+    "encoding_hint": "utf-8",
+    "has_apply_period": true,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동명(분야)": "dong",
+      "프로그램명": "title",
+      "수강료": "fee_raw",
+      "접수기간": "apply_range",
+      "교육기간": "date_range",
+      "운영시간": "day_time",
+      "모집정원": "capacity",
+      "장소": "venue"
+    },
+    "filters": {},
+    "notes": "링크형, 실시간 HTML 표(접수기간·교육기간·운영시간이 '일정' 칸에 합쳐져 있어 split_labels 로 나눔). robots.txt 가 Disallow:/ 라 수집은 robots 차단으로 기록되고 건너뜀(개방 요청 대상). 목록 페이지 넘기기 파라미터는 확인 안 됨(첫 페이지만 파싱). 포털 첨부 CSV 는 2024-04 기준이라 쓰지 않음.",
+    "link_resolve": "html_table",
+    "split_labels": {
+      "일정": [
+        "접수기간",
+        "교육기간",
+        "운영시간"
+      ]
+    },
+    "todo": "목록 페이징 방법 확인 필요"
+  },
+  {
+    "key": "seoul-yangcheon",
+    "sido": "서울특별시",
+    "sigungu": "양천구",
+    "public_data_pk": "15037743",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15037743/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "교육기관": "dong",
+      "강좌명": "title",
+      "수강대상": "target_raw",
+      "교육시작일": "start_date",
+      "교육종료일": "end_date",
+      "교육요일": "day_time",
+      "수강료": "fee_raw",
+      "정원": "capacity",
+      "교육장소": "venue",
+      "주소": "address",
+      "데이터기준일": "data_date"
+    },
+    "filters": {},
+    "notes": "교육시작일이 전부 연초(연간 반). 접수기간 없음."
+  },
+  {
+    "key": "seoul-dongjak",
+    "sido": "서울특별시",
+    "sigungu": "동작구",
+    "public_data_pk": "15037754",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15037754/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동명": "dong",
+      "강좌명": "title",
+      "운영요일": "weekdays_raw",
+      "운영시간": "time_range",
+      "장소": "venue",
+      "수강료": "fee_raw",
+      "정원": "capacity",
+      "대상": "target_raw"
+    },
+    "filters": {},
+    "notes": "강의기간 칸은 '2026년 2분기' 같은 글이라 날짜로 쓰지 않음."
+  },
+  {
+    "key": "seoul-gangseo",
+    "sido": "서울특별시",
+    "sigungu": "강서구",
+    "public_data_pk": "15116986",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15116986/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "교육기관": "dong",
+      "강좌명": "title",
+      "수강대상": "target_raw",
+      "요일": "weekdays_raw",
+      "운영시간": "time_range",
+      "수강료": "fee_raw",
+      "정원": "capacity",
+      "운영기간": "date_range",
+      "교육장소": "venue",
+      "도로명주소": "address"
+    },
+    "filters": {},
+    "notes": "공공누리 1유형(출처표시)."
+  },
+  {
+    "key": "seoul-yeongdeungpo",
+    "sido": "서울특별시",
+    "sigungu": "영등포구",
+    "public_data_pk": "15037761",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15037761/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동명": "dong",
+      "프로그램명": "title",
+      "운영기간": "date_range",
+      "운영요일": "weekdays_raw",
+      "운영시간": "time_range",
+      "수강료": "fee_raw",
+      "정원": "capacity",
+      "대상": "target_raw",
+      "장소": "venue",
+      "주소": "address",
+      "데이터기준일": "data_date"
+    },
+    "filters": {},
+    "notes": "운영기간이 '2024-10 ~ 현재' 꼴이면 날짜로 못 읽어 NULL."
+  },
+  {
+    "key": "seoul-jungnang",
+    "sido": "서울특별시",
+    "sigungu": "중랑구",
+    "public_data_pk": "15037789",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15037789/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동명": "dong",
+      "프로그램명": "title",
+      "요일": "weekdays_raw",
+      "운영시간": "time_range",
+      "수강료": "fee_raw"
+    },
+    "filters": {},
+    "notes": "장소 칸 없음(동명만). 수강료가 월 단위인지 확인 안 됨(월총운영일수 칸이 있음) → 기간은 '총'으로 둠."
+  },
+  {
+    "key": "seoul-eunpyeong",
+    "sido": "서울특별시",
+    "sigungu": "은평구",
+    "public_data_pk": "15037819",
+    "kind": "link",
+    "url": "https://www.ep.go.kr/stat/wt/wt50/wt501020.do?data_meta_id=235",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {},
+    "filters": {},
+    "notes": "링크형. ep.go.kr 통계포털 CSV(type=csv). ep.go.kr robots.txt 가 Disallow:/ 라 수집은 robots 차단으로 기록되고 건너뜀. 헤더를 확인하지 못해 column_map 은 비우고 헤더 이름으로 짐작(AUTO_ALIASES)한다.",
+    "link_resolve": "href_type_csv",
+    "auto_map": true,
+    "todo": "CSV 헤더 확인 필요(robots 차단 상태)"
+  },
+  {
+    "key": "seoul-geumcheon",
+    "sido": "서울특별시",
+    "sigungu": "금천구",
+    "public_data_pk": "15162774",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15162774/fileData.do",
+    "encoding_hint": "utf-8-sig",
+    "has_apply_period": true,
+    "default_is_dong_center": true,
+    "column_map": {
+      "강좌명": "title",
+      "연락처": "institution_phone",
+      "접수 시작일": "apply_start",
+      "접수 종료일": "apply_end",
+      "교육시작일": "start_date",
+      "교육종료일": "end_date",
+      "금액": "fee_raw",
+      "정원": "capacity",
+      "교육장소명": "venue",
+      "교육장소 상세": "address",
+      "교육시간 설명": "day_time",
+      "데이터기준일자": "data_date"
+    },
+    "filters": {
+      "include": {
+        "교육장소명": "주민센터|행정복지센터|주민자치|자치회관"
+      }
+    },
+    "notes": "자치회관+평생학습관+글로벌인재학당이 섞여 있어 교육장소명에 주민센터류 글자가 있는 행만 남김(1,075행 중 197행). 요일은 '교육시간 설명' 글에서 읽음."
+  },
+  {
+    "key": "incheon-yeonsu",
+    "sido": "인천광역시",
+    "sigungu": "연수구",
+    "public_data_pk": "15087577",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15087577/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "교육기관": "institution",
+      "강좌명": "title",
+      "대상": "target_raw",
+      "수강인원(명)": "capacity"
+    },
+    "filters": {},
+    "notes": "요일·시간 없음(횟수/1주, 수강시간/1회 길이만). 수강기간이 연도 없는 '01-02~03-31' 꼴이라 날짜로 못 읽음. 동 이름은 교육기관에서 뽑음."
+  },
+  {
+    "key": "incheon-seo",
+    "sido": "인천광역시",
+    "sigungu": "서구",
+    "public_data_pk": "15051479",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15051479/fileData.do",
+    "encoding_hint": "utf-8-sig",
+    "has_apply_period": true,
+    "default_is_dong_center": true,
+    "column_map": {
+      "주민자치센터명": "dong",
+      "프로그램명": "title",
+      "정원": "capacity",
+      "접수기간(시작)": "apply_start",
+      "접수기간(종료)": "apply_end",
+      "프로그램 교육기간(시작)": "start_date",
+      "프로그램 교육기간(종료)": "end_date",
+      "교육 시간": "time_range"
+    },
+    "filters": {
+      "exclude": {
+        "주민자치센터명": "평생학습관"
+      }
+    },
+    "notes": "포털 제공기관 표기는 '서해구'. 평생학습관 행은 동주민센터가 아니라 뺌. 요일 칸 없음."
+  },
+  {
+    "key": "incheon-michuhol",
+    "sido": "인천광역시",
+    "sigungu": "미추홀구",
+    "public_data_pk": "15099941",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15099941/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동명": "dong",
+      "강좌명": "title",
+      "교육시작일": "start_date",
+      "교육종료일": "end_date",
+      "운영요일": "weekdays_raw",
+      "교육시간": "time_range",
+      "교육장소": "venue",
+      "문의처": "institution_phone"
+    },
+    "filters": {},
+    "notes": "주안2동(15099941)과 주안5동(15099948) 두 파일, 열 구조 동일.",
+    "extra_files": [
+      {
+        "public_data_pk": "15099948",
+        "label": "주안5동"
+      }
+    ]
+  },
+  {
+    "key": "daegu-dong",
+    "sido": "대구광역시",
+    "sigungu": "동구",
+    "public_data_pk": "15102916",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15102916/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동명": "dong",
+      "강좌명": "title",
+      "요일": "weekdays_raw",
+      "강의시간": "time_range",
+      "수강료": "fee_raw",
+      "접수기간": "apply_range",
+      "교육장소": "venue",
+      "모집정원": "capacity"
+    },
+    "filters": {},
+    "notes": "접수기간 칸 값이 '수시' → 연중·수시로 표시."
+  },
+  {
+    "key": "daegu-seo",
+    "sido": "대구광역시",
+    "sigungu": "서구",
+    "public_data_pk": "15161274",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15161274/fileData.do",
+    "encoding_hint": "utf-8-sig",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동명": "dong",
+      "강좌명": "title",
+      "운영기간": "date_range",
+      "시간": "day_time",
+      "장소": "venue",
+      "이용료": "fee_raw",
+      "인원": "capacity"
+    },
+    "filters": {},
+    "notes": "운영기간 '연중' → 연중·수시. 요일은 시간 칸 글('매주 목요일 14:00 ~ 15:30')에서 읽음."
+  },
+  {
+    "key": "daegu-nam",
+    "sido": "대구광역시",
+    "sigungu": "남구",
+    "public_data_pk": "15133191",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15133191/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "행정동": "dong",
+      "강좌명": "title",
+      "강좌요일": "weekdays_raw",
+      "강좌대상": "target_raw",
+      "강좌시간": "time_range",
+      "전화번호": "institution_phone",
+      "강좌료": "fee_raw"
+    },
+    "filters": {},
+    "notes": "장소 칸 없음. 강사명은 가려져 있어 쓰지 않음."
+  },
+  {
+    "key": "daegu-jung",
+    "sido": "대구광역시",
+    "sigungu": "중구",
+    "public_data_pk": "15006019",
+    "kind": "link",
+    "url": "https://www.jung.daegu.kr/new/dong/pages/program/0978_excel.php?mode=csv&mc=978",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {},
+    "filters": {},
+    "notes": "링크형. 구청 CSV 가 봇 차단 JS(sabFingerPrint·sabSignature 쿠키 후 새로고침)를 먼저 돌려줌 → 수집은 bot_block 으로 기록하고 건너뜀. 포털 첨부 파일 없음. 헤더 확인 못 해 AUTO_ALIASES 사용.",
+    "link_resolve": "direct_csv",
+    "auto_map": true,
+    "todo": "봇 차단 쿠키 우회 불가(http 모듈이 쿠키 헤더를 안 받음). 헤더 확인 필요"
+  },
+  {
+    "key": "daejeon-seo",
+    "sido": "대전광역시",
+    "sigungu": "서구",
+    "public_data_pk": "15128300",
+    "kind": "api",
+    "url": "https://www.seogu.go.kr/seoguAPI/3660000/getResideCenterPgrm",
+    "encoding_hint": "utf-8",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "dong": "dong",
+      "prgm_nm": "title",
+      "oper_tm": "day_time",
+      "oper_plce": "venue",
+      "data_creat_de": "data_date"
+    },
+    "filters": {},
+    "notes": "키 없이 호출되는 구청 API(JSON, totalCnt 197). API 가 막히면 같은 원천의 포털 파일 3072105 로 대체.",
+    "api_params": {
+      "pageNo": 1,
+      "numOfRows": 1000
+    },
+    "extra_files": [
+      {
+        "public_data_pk": "3072105",
+        "only_as_fallback": true,
+        "label": "같은 원천 CSV",
+        "column_map": {
+          "동 명": "dong",
+          "프로그램명": "title",
+          "운영시간": "day_time",
+          "운영장소": "venue"
+        }
+      }
+    ]
+  },
+  {
+    "key": "daejeon-jung",
+    "sido": "대전광역시",
+    "sigungu": "중구",
+    "public_data_pk": "15139834",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15139834/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동별": "dong",
+      "프로그램명": "title",
+      "요일": "weekdays_raw",
+      "운영시간1": "time_range",
+      "운영장소": "venue"
+    },
+    "filters": {},
+    "notes": "운영시간2·3(같은 강좌의 다른 시간대)은 쓰지 않음."
+  },
+  {
+    "key": "gwangju-dong",
+    "sido": "광주광역시",
+    "sigungu": "동구",
+    "public_data_pk": "15021227",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15021227/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "행정복지센터명": "dong",
+      "프로그램명": "title",
+      "운영요일": "weekdays_raw",
+      "시작시간": "start_time",
+      "종료시간": "end_time",
+      "장소": "venue",
+      "수강료(원)": "fee_raw",
+      "인원": "capacity",
+      "연락처": "institution_phone",
+      "데이터기준일자": "data_date"
+    },
+    "filters": {},
+    "notes": "포털 표기 시도명은 '전남광주통합특별시'. 저장은 광주광역시(계약 표의 공식 명칭)."
+  },
+  {
+    "key": "gwangju-nam",
+    "sido": "광주광역시",
+    "sigungu": "남구",
+    "public_data_pk": "15122449",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15122449/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "행정동": "dong",
+      "프로그램명": "title",
+      "운영요일": "weekdays_raw",
+      "운영 시작시간": "start_time",
+      "운영 종료시간": "end_time",
+      "수강료(원)": "fee_raw",
+      "장소": "venue",
+      "담당자 연락처": "institution_phone",
+      "데이터기준일자": "data_date"
+    },
+    "filters": {},
+    "notes": "정원 칸 없음."
+  },
+  {
+    "key": "gwangju-buk",
+    "sido": "광주광역시",
+    "sigungu": "북구",
+    "public_data_pk": "15160468",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15160468/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "행정동": "dong",
+      "프로그램명": "title",
+      "운영요일": "weekdays_raw",
+      "운영시작시간": "start_time",
+      "운영종료시간": "end_time",
+      "강의실": "venue",
+      "수강료(월)": "fee_raw_month",
+      "관리기관명": "institution",
+      "관리기관연락처": "institution_phone"
+    },
+    "filters": {},
+    "notes": "정원 칸 없음."
+  },
+  {
+    "key": "ulsan-dong",
+    "sido": "울산광역시",
+    "sigungu": "동구",
+    "public_data_pk": "3076787",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/3076787/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동": "dong",
+      "프로그램명": "title",
+      "수강시간": "day_time",
+      "월수강료": "fee_raw_month",
+      "데이터기준일": "data_date"
+    },
+    "filters": {},
+    "notes": "헤더가 깨져 '프로그램명수강인원'이 한 칸 → header_fixes 로 '프로그램명' 복구. 실측으로 이 칸 값은 강좌명뿐이라 정원은 NULL.",
+    "header_fixes": {
+      "프로그램명수강인원": "프로그램명"
+    }
+  },
+  {
+    "key": "gyeonggi-bucheon",
+    "sido": "경기도",
+    "sigungu": "부천시",
+    "public_data_pk": "15148425",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15148425/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "행정동": "dong",
+      "프로그램명": "title",
+      "모집인원": "capacity",
+      "운영요일": "weekdays_raw",
+      "운영시간": "time_range",
+      "장소": "venue",
+      "월 수강료": "fee_raw_month",
+      "전화번호": "institution_phone"
+    },
+    "filters": {},
+    "notes": "시군구명 칸에 '부천시 원미구' 처럼 구가 붙어 있으나 시군구는 부천시로 통일."
+  },
+  {
+    "key": "gyeonggi-dongducheon",
+    "sido": "경기도",
+    "sigungu": "동두천시",
+    "public_data_pk": "15036275",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15036275/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "동주민자치센터": "dong",
+      "소재지도로명주소": "address",
+      "프로그램명": "title",
+      "교육시작시각": "start_time",
+      "교육종료시각": "end_time",
+      "강좌정원수": "capacity",
+      "운영요일": "weekdays_raw",
+      "교육장소": "venue",
+      "수강료": "fee_raw",
+      "교육대상구분": "target_raw",
+      "접수방법": "apply_method",
+      "선정방법": "selection_method",
+      "연락처": "institution_phone",
+      "데이터기준일자": "data_date"
+    },
+    "filters": {},
+    "notes": "접수기간 없음(접수방법 '방문', 선정방법만). 위경도 칸은 계약상 M1 NULL 이라 쓰지 않음."
+  },
+  {
+    "key": "gyeonggi-yangju",
+    "sido": "경기도",
+    "sigungu": "양주시",
+    "public_data_pk": "15106989",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15106989/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "프로그램명": "title",
+      "운영요일": "weekdays_raw",
+      "운영시작시간": "start_time",
+      "운영종료시간": "end_time",
+      "정원_명": "capacity",
+      "강의실": "venue",
+      "수강료_월": "fee_raw_month",
+      "관리기관명": "institution",
+      "관리기관전화번호": "institution_phone"
+    },
+    "filters": {},
+    "notes": "장흥면(15106989)·옥정1동(15127439)·남면(15106986) 3개 파일. 회천4동(15106675)은 데이터기준일 2024-06-30 이라 '2025년 이후' 기준에 어긋나 뺌(조사 문서의 4개 동 75행 중 23행 제외).",
+    "extra_files": [
+      {
+        "public_data_pk": "15127439",
+        "label": "옥정1동",
+        "column_map": {
+          "프로그램명": "title",
+          "평일운영요일": "weekdays_raw",
+          "평일운영시작시간": "start_time",
+          "평일운영종료시간": "end_time",
+          "운영장소": "venue",
+          "정원": "capacity",
+          "수강 대상": "target_raw",
+          "관리기관": "dong",
+          "연락처": "institution_phone"
+        }
+      },
+      {
+        "public_data_pk": "15106986",
+        "label": "남면",
+        "column_map": {
+          "프로그램명": "title",
+          "운영요일": "weekdays_raw",
+          "운영시작시간": "start_time",
+          "운영종료시간": "end_time",
+          "강의실": "venue",
+          "수강료_월": "fee_raw_month",
+          "관리기관명": "institution",
+          "관리기관연락처": "institution_phone"
+        }
+      }
+    ]
+  },
+  {
+    "key": "chungnam-yesan",
+    "sido": "충청남도",
+    "sigungu": "예산군",
+    "public_data_pk": "15161690",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15161690/fileData.do",
+    "encoding_hint": "utf-8-sig",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "프로그램명": "title",
+      "모집인원": "capacity",
+      "운영장소": "venue",
+      "수강료": "fee_raw",
+      "운영요일": "weekdays_raw",
+      "운영시작일자": "start_date",
+      "운영시작시간": "start_time",
+      "운영종료시간": "end_time",
+      "운영종료일자": "end_date"
+    },
+    "filters": {},
+    "notes": "신규판(15161690). 구파일 15040791 은 제외 목록."
+  },
+  {
+    "key": "chungnam-nonsan",
+    "sido": "충청남도",
+    "sigungu": "논산시",
+    "public_data_pk": "15145211",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15145211/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "센터명": "institution",
+      "프로그램명": "title",
+      "장소명": "venue",
+      "요일": "weekdays_raw",
+      "시작시각": "start_time",
+      "종료시각": "end_time",
+      "수강생(정원)": "capacity",
+      "행정동명": "dong",
+      "소재지도로명주소": "address",
+      "데이터기준일자": "data_date"
+    },
+    "filters": {},
+    "notes": ""
+  },
+  {
+    "key": "chungnam-boryeong",
+    "sido": "충청남도",
+    "sigungu": "보령시",
+    "public_data_pk": "15103991",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15103991/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "읍면동": "dong",
+      "프로그램명": "title",
+      "정원": "capacity",
+      "운영요일": "weekdays_raw",
+      "운영시작시각": "start_time",
+      "운영종료시각": "end_time",
+      "수강료": "fee_raw",
+      "운영장소": "venue",
+      "운영장소 주소": "address",
+      "문의전화": "institution_phone",
+      "데이터기준일": "data_date"
+    },
+    "filters": {},
+    "notes": ""
+  },
+  {
+    "key": "chungnam-cheonan",
+    "sido": "충청남도",
+    "sigungu": "천안시",
+    "public_data_pk": "15154770",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15154770/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": true,
+    "default_is_dong_center": true,
+    "column_map": {
+      "프로그램명": "title",
+      "모집인원": "capacity",
+      "문의처": "contact",
+      "교육대상": "target_raw",
+      "교육장소": "venue",
+      "운영 시작일": "start_date",
+      "운영 종료일": "end_date",
+      "모집 시작일시": "apply_start",
+      "모집 종료일시": "apply_end",
+      "기관구분": "dong"
+    },
+    "filters": {},
+    "notes": "제목은 '비대면 면접구직자…'지만 내용은 동별 주민자치프로그램. 요일·시간 칸 없음. 문의처 글에서 기관명·전화를 나눠 읽음."
+  },
+  {
+    "key": "chungbuk-danyang",
+    "sido": "충청북도",
+    "sigungu": "단양군",
+    "public_data_pk": "3070299",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/3070299/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "주민센터명": "dong",
+      "강의 특징": "description",
+      "프로그램명": "title",
+      "참여인원(명)": "capacity",
+      "데이터기준일자": "data_date"
+    },
+    "filters": {},
+    "notes": "요일·시간 없음(운영기간 '09월~12월', 운영횟수 '주1회')."
+  },
+  {
+    "key": "chungbuk-jeungpyeong",
+    "sido": "충청북도",
+    "sigungu": "증평군",
+    "public_data_pk": "15156340",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15156340/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "프로그램명": "title",
+      "운영시작날짜": "start_date",
+      "운영종료날짜": "end_date",
+      "시작시간": "start_time",
+      "종료시간": "end_time",
+      "정원": "capacity",
+      "수강료": "fee_raw",
+      "장소": "venue"
+    },
+    "filters": {},
+    "notes": "요일 칸 없음. 파일 수정일은 2025-12 지만 운영 날짜가 2019년(종료로 처리됨). 조사 문서 32곳에 포함돼 있어 유지."
+  },
+  {
+    "key": "gyeongnam-gimhae",
+    "sido": "경상남도",
+    "sigungu": "김해시",
+    "public_data_pk": "15154256",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15154256/fileData.do",
+    "encoding_hint": "cp949",
+    "has_apply_period": false,
+    "default_is_dong_center": true,
+    "column_map": {
+      "읍면동": "dong",
+      "프로그램명": "title",
+      "대상": "target_raw",
+      "운영요일": "weekdays_raw",
+      "운영시간": "time_range",
+      "비용": "fee_raw",
+      "상세설명": "detail_text"
+    },
+    "filters": {},
+    "notes": "상세설명 칸은 '장소 : …, 준비물 : …, 내용 : …' 꼴 글이라 설명으로 저장하고 장소만 따로 뽑음."
+  }
+]

@@ -1,0 +1,37 @@
+{
+ "response": {
+  "header": {
+   "resultCode": "C00",
+   "resultMsg": "NORMAL SERVICE"
+  },
+  "body": {
+   "totalCnt": 197,
+   "items": [
+    {
+     "oper_plce": "복수동 행정복지센터",
+     "data_creat_de": "20260428",
+     "prgm_nm": "풍물교실",
+     "sn": 1,
+     "dong": "복수동",
+     "oper_tm": "화, 목 10:00~12:00"
+    },
+    {
+     "oper_plce": "복수동 행정복지센터",
+     "data_creat_de": "20260428",
+     "prgm_nm": "요가교실 A",
+     "sn": 2,
+     "dong": "복수동",
+     "oper_tm": "월, 화, 목 10:10~11:10"
+    },
+    {
+     "oper_plce": "도마동 행정복지센터",
+     "data_creat_de": "20260428",
+     "prgm_nm": "서예",
+     "sn": 3,
+     "dong": "도마동",
+     "oper_tm": "금 14:00~16:00"
+    }
+   ]
+  }
+ }
+}
