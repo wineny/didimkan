@@ -118,7 +118,8 @@ def parse_fee(raw: str | None) -> tuple[int | None, int, str | None]:
     """수강료 원문 → (금액 원, 무료 0/1, 기간 '월'|'총'|None). 파싱 불가 (None, 0, None).
 
     금액은 첫 금액만 읽는다(portal._fee 방식): 「10,000원(재료비 5,000원)」 → 10000.
-    「원」이 붙은 첫 숫자 → 없으면 천 단위 쉼표 숫자·세 자리 이상 숫자 → 없으면 아무 숫자.
+    「N만(M천)원」 표기와 「원」이 붙은 숫자 중 앞에 나온 것 → 없으면 천 단위 쉼표 숫자·세 자리 이상 숫자
+    → 없으면 아무 숫자. 「2만 5천원」 → 25000, 「월 3만원」 → 30000·월.
     기간: 「월」·「매달」이면 월, 「3개월」의 「개월」은 월 단위가 아니라 총.
     """
     if raw is None:
@@ -126,12 +127,17 @@ def parse_fee(raw: str | None) -> tuple[int | None, int, str | None]:
     text = raw.strip()
     if text in ("0", "무료", "무상"):
         return 0, 1, None
-    m = (re.search(r"(\d[\d,]*)\s*원", text)
-         or re.search(r"(\d{1,3}(?:,\d{3})+|\d{3,})", text)
-         or re.search(r"(\d+)", text))
-    if not m:
-        return None, 0, None
-    fee = int(m.group(1).replace(",", ""))
+    man = re.search(r"(\d+)\s*만(?:\s*(\d+)\s*천)?\s*원", text)
+    won = re.search(r"(\d[\d,]*)\s*원", text)
+    if man and (won is None or man.start() <= won.start()):
+        fee = int(man.group(1)) * 10_000 + int(man.group(2) or 0) * 1_000
+    else:
+        m = (won
+             or re.search(r"(\d{1,3}(?:,\d{3})+|\d{3,})", text)
+             or re.search(r"(\d+)", text))
+        if not m:
+            return None, 0, None
+        fee = int(m.group(1).replace(",", ""))
     if fee == 0:
         return 0, 1, None
     return fee, 0, "월" if re.search(r"(?<!개)월|매달", text) else "총"

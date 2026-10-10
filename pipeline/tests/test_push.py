@@ -68,15 +68,26 @@ def result_for(sql, remote_before):
 
 
 def run_http(tmp_path, monkeypatch, fail_on=None, stmt_error_on=(), remote_before=None, args=(),
-             batch=2, n_courses=3):
-    """가짜 Hrana 서버. fail_on: 그 SQL 이 든 요청은 HTTP 500. stmt_error_on: 그 SQL 문장만 오류 결과."""
+             batch=2, n_courses=3, null_baton_on=None, base_url=None):
+    """가짜 Hrana 서버.
+
+    - 응답마다 새 baton(b1, b2 …)을 준다. close 가 든 요청의 응답은 baton null(스트림 끝).
+    - 요청 baton 이 null 이면 새 스트림, 아니면 마지막으로 준 baton 이어야 한다(옛 baton·모르는 baton → HTTP 400).
+    - fail_on: 그 SQL 이 든 요청은 HTTP 500. stmt_error_on: 그 SQL 문장만 오류 결과.
+    - null_baton_on: 그 SQL 문장 응답의 baton 을 null 로(서버가 스트림을 닫은 상황).
+    - base_url: 주면 응답마다 그 값을 base_url 로 준다.
+    """
     db, env = tmp_path / "a.db", tmp_path / "env"
     make_db(db, n_courses)
     env.write_text("TURSO_DATABASE_URL=libsql://x.turso.io\nTURSO_AUTH_TOKEN=secret-token\n")
     sent = []
+    state = {"valid": None, "n": 0}
 
     def fake_post(url, json=None, headers=None, timeout=None):
         sent.append((url, json, headers))
+        b = json.get("baton")
+        if b is not None and b != state["valid"]:
+            return FakeResp(400, {"error": f"invalid baton {b}"})
         sqls = " ".join(r["stmt"]["sql"] for r in json["requests"] if r["type"] == "execute")
         if fail_on and fail_on in sqls:
             return FakeResp(500, {"error": "boom"})
@@ -88,7 +99,13 @@ def run_http(tmp_path, monkeypatch, fail_on=None, stmt_error_on=(), remote_befor
                 res.append({"type": "error", "error": {"message": "boom"}})
             else:
                 res.append(result_for(r["stmt"]["sql"], remote_before))
-        return FakeResp(200, {"baton": "b1", "base_url": None, "results": res})
+        closed = any(r["type"] == "close" for r in json["requests"]) or bool(null_baton_on and null_baton_on in sqls)
+        if closed:
+            state["valid"] = None
+        else:
+            state["n"] += 1
+            state["valid"] = f"b{state['n']}"
+        return FakeResp(200, {"baton": state["valid"], "base_url": base_url, "results": res})
 
     monkeypatch.setattr(pt.requests, "post", fake_post)
     code = pt.main(["--db", str(db), "--env", str(env), "--batch", str(batch), *args])
@@ -128,11 +145,12 @@ def test_http_order_and_batches(tmp_path, monkeypatch, capsys):
     assert sum(len(b["requests"]) - 1 for b in inserts) == LOCAL_COURSES + 1 + 1 + 1
     assert all(u == "https://x.turso.io/v2/pipeline" for u, _, _ in sent)
     assert all("Authorization" in h for _, _, h in sent)
-    # 교체는 한 문장씩, BEGIN 다음부터 같은 baton 으로
+    # 교체는 한 문장씩. 첫 요청은 baton null 을 명시하고, 그 뒤는 직전 응답의 새 baton(전부 다름)
     swaps = [b for _, b, _ in sent if kind(b) == "swap"]
     assert all(len(sqls_of(b)) == 1 for b in swaps)
-    assert sqls_of(swaps[0]) == ["BEGIN"] and "baton" not in swaps[0]
-    assert all(b.get("baton") == "b1" for b in swaps[1:])
+    assert sqls_of(swaps[0]) == ["BEGIN"] and "baton" in swaps[0] and swaps[0]["baton"] is None
+    later = [b["baton"] for b in swaps[1:]]
+    assert all(later) and len(set(later)) == len(later)
     assert sqls_of(swaps[-1]) == ["COMMIT"]
     assert f"courses local={LOCAL_COURSES} remote={LOCAL_COURSES}" in capsys.readouterr().out
 
@@ -150,11 +168,42 @@ def test_rename_error_rolls_back_without_commit(tmp_path, monkeypatch, capsys):
     assert "COMMIT" not in all_sqls  # 교체 미확정
     assert all_sqls[-1] == "ROLLBACK"
     rb = sent[-1][1]
-    assert rb["baton"] == "b1" and rb["requests"][-1]["type"] == "close"
+    assert rb["baton"] and rb["requests"][-1]["type"] == "close"
     # 오류 뒤에는 다음 문장을 보내지 않는다
     assert all_sqls[all_sqls.index("ALTER TABLE institutions_new RENAME TO institutions") + 1] == "ROLLBACK"
     assert "count" not in [kind(b) for _, b, _ in sent]
     assert "롤백됨" in capsys.readouterr().err
+
+
+def test_old_baton_is_rejected_by_fake(tmp_path, monkeypatch):
+    # 가짜 서버 자체 확인: 옛 baton 을 다시 쓰면 HTTP 400 (그래서 다른 테스트의 통과가 baton 을 바르게 쓴다는 증거가 된다)
+    code, _ = run_http(tmp_path, monkeypatch)
+    assert code == 0
+    fake = pt.requests.post  # run_http 가 심어 둔 가짜
+    r1 = fake("u", json={"baton": None, "requests": [pt.execute("BEGIN")]})
+    b1 = r1.json()["baton"]
+    r2 = fake("u", json={"baton": b1, "requests": [pt.execute("SELECT 1")]})
+    assert r2.status_code == 200
+    assert fake("u", json={"baton": b1, "requests": [pt.execute("SELECT 1")]}).status_code == 400
+
+
+def test_null_baton_mid_swap_stops(tmp_path, monkeypatch, capsys):
+    code, sent = run_http(tmp_path, monkeypatch, null_baton_on="DROP TABLE IF EXISTS institutions")
+    assert code == 1
+    all_sqls = [q for _, b, _ in sent for q in sqls_of(b)]
+    # null 이 온 문장 다음으로는 아무 문장도 보내지 않는다(새 스트림에서 자동 커밋 방지)
+    assert all_sqls[-1] == "DROP TABLE IF EXISTS institutions"
+    assert "COMMIT" not in all_sqls and "ROLLBACK" not in all_sqls
+    err = capsys.readouterr().err
+    assert "baton 이 null" in err and "롤백됨" not in err
+
+
+def test_swap_follows_base_url(tmp_path, monkeypatch):
+    code, sent = run_http(tmp_path, monkeypatch, base_url="https://other.turso.io/")
+    assert code == 0
+    swap_urls = [u for u, b, _ in sent if kind(b) == "swap"]
+    assert swap_urls[0] == "https://x.turso.io/v2/pipeline"  # BEGIN 은 원래 주소
+    assert set(swap_urls[1:]) == {"https://other.turso.io/v2/pipeline"}
 
 
 def test_rollback_failure_is_not_reported_as_rolled_back(tmp_path, monkeypatch, capsys):

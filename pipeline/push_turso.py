@@ -180,27 +180,40 @@ def _endpoint_from(data: dict, current: str) -> str:
 
 
 def run_swap(endpoint: str, token: str, stmts: list[dict]) -> bool:
-    """교체 트랜잭션을 한 스트림에서 문장 하나씩 보낸다. 오류가 나면 ROLLBACK 을 보내고 False."""
+    """교체 트랜잭션을 한 스트림에서 문장 하나씩 보낸다. 오류가 나면 ROLLBACK 을 보내고 False.
+
+    Hrana: 응답마다 새 baton 을 주고 다음 요청은 그 baton 을 써야 같은 스트림이다. COMMIT 전에 baton 이
+    null 로 오면 스트림이 닫힌 것이라, 그대로 이어 보내면 다음 DROP/RENAME 이 새 스트림에서 자동 커밋된다.
+    그래서 즉시 중단한다(닫힌 스트림의 미확정 트랜잭션은 서버가 버리지만, 확인할 수 없으니 「롤백됨」은 안 찍는다).
+    """
     baton: str | None = None
+    last = len(stmts) - 1
     for i, stmt in enumerate(stmts):
-        body: dict = {"requests": [stmt]}
-        if baton:
-            body["baton"] = baton
+        sql_text = stmt["stmt"]["sql"]
         try:
-            data = post_raw(endpoint, token, body)
+            data = post_raw(endpoint, token, {"baton": baton, "requests": [stmt]})
             err = stmt_error(data["results"][0])
-            baton = data.get("baton") or baton
+            next_baton = data.get("baton")
             endpoint = _endpoint_from(data, endpoint)
         except (RuntimeError, requests.RequestException, KeyError, IndexError, ValueError) as e:
-            err = repr(e)
-        if err is None:
-            continue
-        print(f"[swap] 문장 {i} 「{stmt['stmt']['sql']}」 오류: {err}", file=sys.stderr)
-        if i == 0:
-            print("[swap] BEGIN 이 실패해 아무것도 바뀌지 않음(원격 기존 표는 그대로)", file=sys.stderr)
+            print(f"[swap] 문장 {i} 「{sql_text}」 오류: {e!r}", file=sys.stderr)
+            if i == 0:
+                print("[swap] BEGIN 이 실패해 아무것도 바뀌지 않음(원격 기존 표는 그대로)", file=sys.stderr)
+            else:
+                rollback(endpoint, token, baton)
             return False
-        rollback(endpoint, token, baton)
-        return False
+        if i < last and next_baton is None:
+            print(f"[swap] 문장 {i} 「{sql_text}」 뒤 baton 이 null — 스트림이 닫혀 중단합니다. "
+                  "원격 DB 상태를 직접 확인하세요", file=sys.stderr)
+            return False
+        if err is not None:
+            print(f"[swap] 문장 {i} 「{sql_text}」 오류: {err}", file=sys.stderr)
+            if i == 0:
+                print("[swap] BEGIN 이 실패해 아무것도 바뀌지 않음(원격 기존 표는 그대로)", file=sys.stderr)
+            else:
+                rollback(endpoint, token, next_baton)
+            return False
+        baton = next_baton
     if baton:  # 스트림 닫기(실패해도 COMMIT 은 이미 끝남)
         try:
             post_raw(endpoint, token, {"baton": baton, "requests": [{"type": "close"}]})
@@ -211,9 +224,7 @@ def run_swap(endpoint: str, token: str, stmts: list[dict]) -> bool:
 
 def rollback(endpoint: str, token: str, baton: str | None) -> bool:
     """ROLLBACK 을 보내고 실제로 성공했을 때만 「롤백됨」을 찍는다."""
-    body: dict = {"requests": [execute("ROLLBACK"), {"type": "close"}]}
-    if baton:
-        body["baton"] = baton
+    body: dict = {"baton": baton, "requests": [execute("ROLLBACK"), {"type": "close"}]}
     try:
         data = post_raw(endpoint, token, body)
         err = stmt_error(data["results"][0])
