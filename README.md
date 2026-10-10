@@ -1,0 +1,126 @@
+# 디딤칸
+
+흩어진 동네 공공 강좌를 한곳에 모아, 지금 어디까지 나갈 수 있는지에 맞춰 **다시 나가는 첫걸음** 강좌를 골라 주는 모바일 웹입니다.
+
+- 공모전: 2026 AI·디지털 기반 사회문제 해결 챌린지
+- 일정: 서류 통과 10/7 · 상세기획서 11/3 · 본선 12월 초
+- 주 이용자: 퇴직·사별 뒤 나가던 자리가 끊긴 50~60대(청년 병행)
+- 첫 현장: 서울 강남구
+
+## 화면 흐름
+
+1. **상태 질문**: 「아직은 집에서」·「한 번 나가 볼 수 있어요」·「정기적으로 다닐 곳을 찾아요」 중 하나를 고릅니다.
+2. **동네 고르기**: 시도와 시군구를 고릅니다. 집에서 고른 사람은 건너뛸 수 있습니다.
+3. **홈(계단)**: 지금 칸을 크게 보여 줍니다. 칸은 1단 집에서, 2단 한 번 나가기, 3단 정기적으로 세 개입니다. 지금 칸 강좌가 가까운 순으로 나옵니다.
+4. **강좌 카드**: 수강료, 기초 여부, 정원, 뽑는 방식, 기간, 장소를 타일로 보여 줍니다. 기관 신청 링크와 전화 버튼이 있습니다.
+
+화면 상단의 「가 크게보기」를 켜면 글자와 버튼이 커지고, 선택지 그림이 빠집니다. 화면 캡처는 `e2e/shots/` 에 저장되지만 커밋하지 않습니다.
+
+## 구조
+
+| 폴더 | 내용 |
+|---|---|
+| `src/` | Next.js(App Router, TypeScript) 화면, API, DB 조회(Drizzle) |
+| `pipeline/` | Python 수집·정규화·파생 규칙 파이프라인과 테스트 |
+| `data/` | e2e 용 축약 DB `fixture.db` 만 커밋. 실데이터 DB 는 커밋하지 않음 |
+| `e2e/` | Playwright 시나리오와 셀렉터 기준 `fixture-ids.json` |
+| `docs/` | 데이터 계약(`contract.md`), 셀렉터 계약(`selectors.md`), 다음 작업(`다음-작업.md`) |
+
+## 실행
+
+필요한 환경: Node 22, pnpm 11, Python 3.12.
+
+```bash
+pnpm install
+TURSO_DATABASE_URL=file:./data/fixture.db pnpm dev   # 로컬 개발 서버
+pnpm test                                             # vitest 단위 테스트
+pytest pipeline                                       # 파이프라인 테스트
+pnpm e2e                                              # Playwright e2e(헤드리스, 390×844)
+pnpm build                                            # 프로덕션 빌드
+pnpm lint                                             # 린트
+```
+
+- `TURSO_DATABASE_URL=file:...` 로 주면 같은 코드가 파일 DB 를 읽습니다. 원격 Turso 가 필요 없습니다.
+- e2e 는 `e2e/fixture-ids.json` 의 `today` 값을 `DIDIM_TODAY` 로 넘겨 기준일을 고정합니다. 그래서 접수 상태 문구가 날짜에 흔들리지 않습니다.
+
+## 데이터 수집
+
+### 소스
+
+| 소스 | 출처 | 법적 전제 | 설명 원문 저장 |
+|---|---|---|---|
+| 전국평생학습강좌 표준데이터 | 공공데이터포털 #15013110 | 이용허락 제한 없음 | 저장 |
+| 지자체 개별 파일 | 공공데이터포털, 지자체별 데이터셋 | 데이터셋별 공공누리 표기 | 저장 |
+| 강남구 통합예약 | 강남구 생활 예약 REST | 약관상 원문 재게시 금지 | 저장 안 함 |
+| 서울 자치구 예약사이트 | 구별 예약 사이트 | robots 준수, 요청 간 1초 이상 | 저장 안 함 |
+
+### 실행
+
+```bash
+.venv/bin/python pipeline/build.py --today $(date +%F)     # 실제 수집
+.venv/bin/python pipeline/build.py --today $(date +%F) --offline   # 네트워크 없이 축약본으로 빌드
+```
+
+- `--sources` 로 소스를 골라 돌릴 수 있습니다. 값은 `std,portal,gangnam,seoul` 입니다.
+- 산출물은 `data/didimkan.db`(SQLite), `pipeline/out/build_report.json`(소스별 건수와 계단별 건수), `pipeline/out/failures.json`(실패 목록)입니다.
+
+### 데이터 현황
+
+| 항목 | 값 |
+|---|---|
+| 기준일 | {{A8_DATE}} |
+| 총 강좌 수 | {{A8_TOTAL}} |
+| 소스별 건수 | {{A8_BY_SOURCE}} |
+| 서울 자치구 수 | {{A8_SEOUL_GU}} |
+| 동주민센터 등 동 단위 기관 비율 | {{A8_DONG_RATIO}} |
+
+## Turso 업로드
+
+```bash
+.venv/bin/python pipeline/push_turso.py --db data/didimkan.db --env .env.local
+```
+
+- 새 테이블을 먼저 만들고 채운 뒤, 한 트랜잭션에서 이름을 바꿔 끼웁니다. 그래서 서비스 중에도 중단 없이 교체됩니다.
+- 끝나면 행 수를 세어 원본과 맞는지 확인합니다.
+- `--dump` 로 SQL 파일만 만들 수 있고, `--dry-run` 으로 실제 쓰기 없이 확인할 수 있습니다.
+- `.env.local` 에는 키 두 개가 필요합니다. 이름은 `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` 입니다. 값은 커밋하지 않습니다.
+
+## 배포
+
+### Vercel 수동 배포
+
+개인 Vercel 팀(ynr0402) 계정으로 배포합니다. 기본 로그인 계정은 쓰지 않습니다.
+
+```bash
+vercel --global-config ~/.vercel-ynr0402 link          # 처음 한 번
+cat .vercel/project.json                                # orgId 가 개인 팀 값인지 확인
+vercel --global-config ~/.vercel-ynr0402 --prod        # 프로덕션 배포
+```
+
+- 배포 전에 Vercel 프로젝트에 `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` 을 등록해야 합니다.
+
+### GitHub Actions
+
+| 워크플로 | 내용 |
+|---|---|
+| `ci.yml` | push 와 PR 마다 린트, vitest, pytest, e2e 를 돌립니다. 시크릿을 쓰지 않습니다. |
+| `vercel.yml` | push 마다 배포합니다. `main` 은 프로덕션, 그 밖의 브랜치는 프리뷰입니다. |
+
+- `vercel.yml` 에는 레포 시크릿 `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` 가 필요합니다. 사용자가 레포 Settings 에 넣습니다.
+- 시크릿을 아직 넣지 않았다면 `vercel.yml` 실패는 정상입니다.
+- 본선 전에 민관협력 지원 플랫폼(클라우드)으로 옮길 예정입니다.
+
+## 규칙 요약
+
+- 날짜와 마감일을 추측해서 채우지 않습니다. 확인하지 못하면 「확인 안 됨」으로 둡니다.
+- 재게시가 금지된 소스는 설명 원문을 저장하지 않습니다. 강좌명, 요일, 시간, 정원, 수강료, 장소, 링크만 저장합니다.
+- 수집은 각 사이트의 robots 규칙을 따릅니다. 차단된 구는 수집하지 않고 실패 기록에 남깁니다.
+- 화면 문구에 금지어를 쓰지 않습니다. 금지어 목록은 명세 §5에 있습니다. 담당자는 「복지관 담당자」라고 부릅니다.
+- 사진은 모두 AI 생성 시범 이미지입니다. 사진을 쓰는 화면에 「AI 생성 시범 이미지」를 표기합니다.
+
+## 출처
+
+- 공공데이터포털 전국평생학습강좌 표준데이터 (#15013110)
+- 강남구 통합예약 서비스
+- 서울 자치구 평생학습 예약 사이트
+- 지자체별 공공데이터포털 데이터셋
