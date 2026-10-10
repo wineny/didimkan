@@ -28,7 +28,7 @@ SIGNAL_KEYS = ("free", "basic", "small", "lottery", "once", "online", "welcome",
 FEE_LIMIT = 50_000
 SMALL_MAX = 15
 
-DONG_CENTER_RE = re.compile(r"동주민센터|행정복지센터|자치회관|주민자치|동복합문화센터|주민센터")
+DONG_CENTER_RE = re.compile(r"동주민센터|행정복지센터|자치회관|주민자치|동\s*복합문화센터|복합문화센터|주민센터|커뮤니티센터")
 
 CATEGORY_RULES: list[tuple[str, re.Pattern]] = [
     ("춤", re.compile(r"댄스|무용|에어로빅|줌바|탱고|살사|발레|벨리")),
@@ -320,9 +320,9 @@ def derive_all(rows: list[dict], today: date) -> list[dict]:
     out: list[dict] = []
     for r in rows:
         row = dict(r)
-        # contract §6: 강남 REST 행은 모두 동복합문화센터
-        row["is_dong_center"] = 1 if row.get("source") == "gangnam" else is_dong_center(
-            row.get("institution"), row.get("venue"))
+        # contract §6(수정 2026-10-10): 강남 REST 에는 체육관·테니스장도 섞여 있어
+        # 기관명으로 판정한다(「복합문화센터」 포함 시 1).
+        row["is_dong_center"] = is_dong_center(row.get("institution"), row.get("venue"))
         row["category"] = category(row.get("title"))
         row["term_days"] = term_days(row.get("start_date"), row.get("end_date"))
         row["sessions_per_week"] = sessions_per_week(row.get("weekday_bits"))
