@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FORBIDDEN, NOTIFY_SHEET, EMPTY_LIST, STAIR_NAMES, STAIR_SUB, STEP_LABELS, HOME_HINT, NEXT_SLOT_STAIR3, capacityHint, feeLabel, phoneText, tiles } from "./copy";
+import { FORBIDDEN, M2_COPY, EMPTY_LIST, STAIR_NAMES, STAIR_SUB, STEP_LABELS, HOME_HINT, NEXT_SLOT_STAIR3, capacityHint, feeLabel, phoneText, tiles } from "./copy";
 
 const course = {
   isFree: false, isOnline: false, feeWon: 18000, feePeriod: "월" as const, capacity: 20,
@@ -46,6 +46,12 @@ describe("tiles", () => {
   });
 });
 
+function flat(v: unknown): string[] {
+  if (typeof v === "string") return [v];
+  if (v && typeof v === "object") return Object.values(v).flatMap(flat);
+  return [];
+}
+
 describe("문구", () => {
   it("전화번호 없음", () => {
     expect(phoneText(null)).toBe("전화번호 확인 안 됨");
@@ -59,12 +65,15 @@ describe("문구", () => {
   });
   it("고정 문구", () => {
     expect(STAIR_NAMES[1]).toBe("아직은 집에서");
-    expect(NOTIFY_SHEET).toContain("접수 알림은 11월에 열려요");
     expect(EMPTY_LIST).toContain("못 찾았어요");
     expect(NEXT_SLOT_STAIR3).toBe("같은 자리 다음 학기");
   });
+  it("M2 문구가 비어 있지 않다", () => {
+    expect(flat(M2_COPY).length).toBeGreaterThan(80);
+    expect(M2_COPY.sms.closing).toContain("신청은 직접 하셔야 해요");
+  });
   it("금지어가 화면 문구에 없다", () => {
-    const all = [...Object.values(STAIR_NAMES), ...Object.values(STAIR_SUB), ...Object.values(STEP_LABELS), ...Object.values(HOME_HINT), NOTIFY_SHEET, EMPTY_LIST, NEXT_SLOT_STAIR3, ...tiles(course).map((t) => t.value)];
+    const all = [...Object.values(STAIR_NAMES), ...Object.values(STAIR_SUB), ...Object.values(STEP_LABELS), ...Object.values(HOME_HINT), ...flat(M2_COPY), EMPTY_LIST, NEXT_SLOT_STAIR3, ...tiles(course).map((t) => t.value)];
     for (const w of FORBIDDEN) for (const s of all) expect(s).not.toContain(w);
     expect(all.join(" ")).not.toMatch(/수강생 \d+명/);
   });

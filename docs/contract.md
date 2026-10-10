@@ -455,3 +455,36 @@ DB 행 그대로(snake_case). 예시 2·3 은 옛 DB(`kakao-mcp-공모전/data/c
   "is_estimate": 0
 }
 ```
+
+## 17. 앱 테이블 (M2-a, 2026-10-10)
+
+로그인·알림용 테이블 5개. `src/db/app-schema.ts`(Drizzle) + `src/db/app-ddl.ts`(`CREATE TABLE IF NOT EXISTS`). **`pipeline/schema.sql` 에는 넣지 않는다** — 계약 테스트는 4개 수집 테이블만 보고, `push_turso.py` 도 4개만 교체한다. 앱이 첫 접근 때 DDL 을 실행한다(`ensureAppTables`).
+
+| 테이블 | 열 | 규칙 |
+|---|---|---|
+| `users` | `id`(UUID) `phone`(숫자만, UNIQUE) `created_at` | 번호는 알림에만 쓴다 |
+| `otp_codes` | `id` `phone` `code_hash` `salt` `expires_at` `attempts` `consumed_at` `created_at` | 코드 6자리, `sha256(salt+code)`, 5분 유효, `attempts ≥ 5` 잠김. 하루 지나면 크론이 지운다 |
+| `sessions` | `id`(= sha256(토큰)) `user_id` `created_at` `expires_at` | 쿠키 `didim_s`(httpOnly·lax·90일)에는 원본 토큰만 |
+| `alerts` | `id` `user_id` `course_id` `is_on`(0/1) `created_at` | `(user_id, course_id)` UNIQUE. `courses` 와 FK 없음(교체되는 표) |
+| `sms_log` | `id` `kind`(otp/d3/d0) `alert_id` `user_id` `to_phone` `body` `provider` `provider_id` `status`(sending/sent/failed/dry) `error` `created_at` | `(alert_id, kind)` 부분 유니크(`failed` 제외) → 같은 문자를 두 번 보내지 않는다. OTP 본문은 숫자를 가려 저장 |
+
+- 시각은 ISO 8601 UTC. 날짜 비교는 KST 달력(`getNow()`).
+- 「내 번호 지우기」 = `alerts`·`sessions`(user_id) + `otp_codes`(phone) + `sms_log`(user_id 또는 to_phone) + `users` 삭제.
+- 강좌가 재수집으로 사라지면(`alerts.course_id` 가 `courses` 에 없음) 화면에 「강좌 정보가 바뀌었어요」, 문자는 보내지 않는다.
+
+## 18. 알림 문자 규칙 (M2-a)
+
+| 항목 | 규칙 |
+|---|---|
+| 접수일 | `alertApplyDate`: `is_always_open` → 없음 · `apply_start` 있으면 확정 · 없으면 `next_open_estimate`(예상, 문안에 「예상이며 확정 아님」) |
+| d3 | `now.date == 접수일 − 3` ∧ `hour ≥ 18` |
+| d0 | `now.date == 접수일` ∧ `8 ≤ hour < 12` |
+| 늦은 발송 | 없음. 창을 지나면 보내지 않는다 |
+| 접수 시각 | 강남(`source='gangnam'`)만 「오전 9시」(§11). 다른 소스는 시각 없음 |
+| d3 문안 | `[디딤칸] 3일 뒤 {M월 D일(요일)}{ 오전 9시}에 「{강좌명}」 접수가 열려요.{ 선착순 N명이에요.} 신청: {기관}{ 링크}` |
+| d0 문안 | `[디딤칸] 오늘{ 오전 9시} 「{강좌명}」 접수가 열려요.` + 전화 있으면 ` 전화로 물어볼 수 있어요 {기관} {전화}` / 없으면 ` 신청: {기관}{ 링크}` |
+| 시각 표기 | 0~5 새벽 · 6~8 아침 · 9~11 오전 · 12 낮 12시 · 13~17 오후 · 18~23 저녁 |
+| 알림 버튼 | 강좌 카드에서 상태 `before` 일 때만 보인다 |
+| 크론 | `GET /api/cron/notify`, `Authorization: Bearer CRON_SECRET`. `dry=1` 은 기록·발송 없이 계획만. `now=` 는 `DIDIM_ALLOW_TODAY_OVERRIDE=1` 이고 production 이 아닐 때만 |
+
+`src/lib/notify.ts` 가 이 규칙을 구현하고 `src/lib/notify.test.ts` 가 사례로 확인한다.

@@ -4,7 +4,7 @@ import InfoGrid, { type InfoCell } from "@/components/InfoGrid";
 import NotifyButton from "@/components/NotifyButton";
 import Shell from "@/components/Shell";
 import { getCourse, type CourseWithStatus } from "@/db/queries";
-import { ESTIMATE_NOTE, LOTTERY_NOTE, NO_PHONE, NO_SIGNAL, capacityHint, tiles } from "@/lib/copy";
+import { ESTIMATE_NOTE, LOTTERY_NOTE, NO_PHONE, NO_SIGNAL, capacityHint, tiles, orgName, sourceName } from "@/lib/copy";
 import { safeHttpUrl } from "@/lib/url";
 import "./course.css";
 
@@ -16,20 +16,6 @@ const PHOTO: Record<string, string> = {
   "미술·서예": "art",
   어학: "lang",
 };
-
-const SEOUL_GU: Record<string, string> = {
-  jongno: "종로구", junggu: "중구", seongdong: "성동구", dongdaemun: "동대문구", gangbuk: "강북구",
-  gwanak: "관악구", gangdong: "강동구", yongsan: "용산구", seongbuk: "성북구", seodaemun: "서대문구",
-  guro: "구로구", songpa: "송파구", seocho: "서초구", nowon: "노원구",
-};
-
-function sourceName(source: string): string {
-  if (source === "gangnam") return "강남구 통합예약";
-  if (source === "std") return "공공데이터포털 전국평생학습강좌표준데이터";
-  if (source === "portal") return "공공데이터포털";
-  const gu = SEOUL_GU[source.replace("seoul_", "")];
-  return gu ? `서울 ${gu} 예약사이트` : source;
-}
 
 const md = (ymd: string) => `${Number(ymd.slice(5, 7))}/${Number(ymd.slice(8, 10))}`;
 const korDate = (ymd: string) => `${Number(ymd.slice(5, 7))}월 ${Number(ymd.slice(8, 10))}일`;
@@ -82,7 +68,7 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
   const photo = c.category ? PHOTO[c.category] : undefined;
   const lottery = c.selectionMethod === "추첨" || (c.signals as string[]).includes("lottery");
   const siteUrl = safeHttpUrl(c.detailUrl) ?? safeHttpUrl(c.homepageUrl);
-  const org = c.source === "gangnam" || c.source.startsWith("seoul_") ? sourceName(c.source) : (c.institution ?? "기관");
+  const org = orgName(c);
   const tel = c.phone ? `tel:${c.phone.replace(/[^\d+]/g, "")}` : null;
   const quote = signalQuote(c);
   const st = c.status;
@@ -200,8 +186,8 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
           ) : (
             <p className="c-note c-noapply">신청은 기관에 전화로</p>
           )}
-          {/* 연중·수시는 기다릴 접수일이 없으니 알림 대신 위의 큰 전화 버튼만 둔다. */}
-          {always ? null : <NotifyButton phone={c.phone} siteUrl={siteUrl} />}
+          {/* 접수 전(확정·예상 모두)일 때만 알림 버튼을 둔다. 연중·접수 중·마감·확인 안 됨은 알림 없이 위의 신청·전화 버튼만 둔다. */}
+          {st.status === "before" ? <NotifyButton courseId={c.id} /> : null}
         </div>
       </main>
     </Shell>

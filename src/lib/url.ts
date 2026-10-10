@@ -14,3 +14,24 @@ export function safeHttpUrl(v: string | null | undefined): string | null {
   if ((scheme !== "http" && scheme !== "https") || !m[2]) return null;
   return s;
 }
+
+/**
+ * 로그인 뒤 돌아갈 같은 사이트 경로만 돌려준다(spec-m2 §13 F7). 아니면 "/me".
+ * 문자열이고 `/` 로 시작, `\` 없음, `new URL(next, origin).origin === origin` 일 때만 통과.
+ */
+export function safeNext(next: unknown, origin: string): string {
+  const fallback = "/me";
+  if (typeof next !== "string" || next.length > 512) return fallback;
+  if (!next.startsWith("/") || next.includes("\\")) return fallback;
+  try {
+    const base = new URL(origin).origin;
+    const u = new URL(next, base);
+    if (u.origin !== base) return fallback;
+    const out = `${u.pathname}${u.search}${u.hash}`;
+    // `/.//evil.com`·`/%2e//evil.com` 은 정규화 뒤 `//evil.com` 이 돼 브라우저가 다른 사이트로 읽는다
+    if (out.startsWith("//") || out.startsWith("/\\")) return fallback;
+    return out;
+  } catch {
+    return fallback;
+  }
+}

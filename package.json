@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "e2e": "playwright test",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:app": "tsx scripts/ensure-app-tables.ts"
   },
   "dependencies": {
     "@libsql/client": "0.18.0",
@@ -27,6 +28,7 @@
     "drizzle-kit": "0.31.11",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.0",
+    "tsx": "4.23.15",
     "typescript": "5.9.3",
     "vitest": "5.0.3"
   },

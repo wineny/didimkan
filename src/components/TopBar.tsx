@@ -1,6 +1,18 @@
+import Link from "next/link";
+import { getSession } from "@/lib/auth";
 import BigToggle from "./BigToggle";
 
-export default function TopBar() {
+/** 로그인 상태를 못 읽으면(DB 오류 등) 로그인 전 화면으로 보여 준다. */
+async function isLoggedIn(): Promise<boolean> {
+  try {
+    return (await getSession()) !== null;
+  } catch {
+    return false;
+  }
+}
+
+export default async function TopBar() {
+  const loggedIn = await isLoggedIn();
   return (
     <header className="top">
       <div className="logo" role="img" aria-label="디딤칸">
@@ -15,9 +27,15 @@ export default function TopBar() {
       </div>
       <div className="tbtns">
         <BigToggle />
-        <button type="button" className="tbtn tbtn-login" disabled aria-disabled="true">
-          로그인 준비 중
-        </button>
+        {loggedIn ? (
+          <Link data-me className="tbtn tbtn-me" href="/me">
+            내 알림
+          </Link>
+        ) : (
+          <Link data-login className="tbtn tbtn-login" href="/login">
+            로그인
+          </Link>
+        )}
       </div>
     </header>
   );

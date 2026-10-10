@@ -1,41 +1,57 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { NOTIFY_SHEET } from "@/lib/copy";
-import { safeHttpUrl } from "@/lib/url";
-import BottomSheet from "./BottomSheet";
+import { M2_COPY } from "@/lib/copy";
 
-/** 파란 「관심 강좌로 접수 알림 받기」. 누르면 11월에 열린다는 시트가 올라온다. */
-export default function NotifyButton({
-  phone,
-  siteUrl,
-}: {
-  phone: string | null;
-  siteUrl: string | null;
-}) {
-  const [open, setOpen] = useState(false);
-  const site = safeHttpUrl(siteUrl);
+const KEEP = ["st", "sido", "sigungu", "dong"] as const;
+
+/** 파란 「관심 강좌로 접수 알림 받기」. 로그인돼 있으면 바로 등록하고, 아니면 로그인으로 보낸다. */
+export default function NotifyButton({ courseId }: { courseId: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onClick() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/alerts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId }),
+      });
+      if (res.status === 401) {
+        const here = new URLSearchParams(window.location.search);
+        const q = new URLSearchParams({ course: courseId });
+        for (const k of KEEP) q.set(k, here.get(k) ?? "");
+        router.push(`/login?${q.toString()}`);
+        return;
+      }
+      if (res.ok) {
+        const data = (await res.json()) as { id?: string };
+        if (data.id) {
+          router.push(`/alert/${data.id}`);
+          return;
+        }
+      }
+      setError(res.status === 404 ? M2_COPY.login.errNoAlert : res.status === 409 ? M2_COPY.login.errAlertLimit : M2_COPY.login.errAlert);
+    } catch {
+      setError(M2_COPY.login.errNetwork);
+    }
+    setBusy(false);
+  }
+
   return (
     <>
-      <button type="button" className="cta c-notify" data-notify onClick={() => setOpen(true)}>
+      <button type="button" className="cta c-notify" data-notify disabled={busy} onClick={onClick}>
         관심 강좌로 접수 알림 받기
       </button>
-      <BottomSheet open={open} onClose={() => setOpen(false)} label="접수 알림 안내">
-        <p className="c-sheet-t">{NOTIFY_SHEET}</p>
-        {phone ? (
-          <a className="cta c-sheet-btn" href={`tel:${phone.replace(/[^\d+]/g, "")}`}>
-            전화하기 · {phone}
-          </a>
-        ) : null}
-        {site ? (
-          <a className="sbtn c-sheet-btn" href={site} target="_blank" rel="noopener noreferrer">
-            기관 사이트 열기
-          </a>
-        ) : null}
-        <button type="button" className="sbtn c-sheet-btn" onClick={() => setOpen(false)}>
-          닫기
-        </button>
-      </BottomSheet>
+      {error ? (
+        <p className="m-err" role="alert">
+          {error}
+        </p>
+      ) : null}
     </>
   );
 }

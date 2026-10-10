@@ -34,7 +34,7 @@ export type ListCoursesInput = {
   offset?: number;
 };
 
-async function loadPatterns(rows: readonly Course[]): Promise<EnrollmentPattern[]> {
+export async function loadPatterns(rows: readonly Course[]): Promise<EnrollmentPattern[]> {
   const names = [...new Set(rows.map((r) => r.institution).filter((v): v is string => !!v))];
   if (names.length === 0) return [];
   return db
@@ -43,7 +43,7 @@ async function loadPatterns(rows: readonly Course[]): Promise<EnrollmentPattern[
     .where(inArray(enrollmentPatterns.institution, names));
 }
 
-function attach(
+export function attach(
   row: Course,
   patterns: readonly EnrollmentPattern[],
   today: string,
@@ -136,6 +136,41 @@ export async function getCourse(
     phone = inst?.phone ?? null;
   }
   return { ...attach(row, patterns, today), phone };
+}
+
+/** 여러 강좌를 한 번에(알림 목록·크론). 없는 id 는 Map 에 없다. 전화는 getCourse 와 같이 기관 표에서 보충한다. */
+export async function getCoursesWithStatus(
+  ids: string[],
+  today: string = getToday(),
+): Promise<Map<string, CourseWithStatus & { phone: string | null }>> {
+  const out = new Map<string, CourseWithStatus & { phone: string | null }>();
+  const uniq = [...new Set(ids)];
+  if (uniq.length === 0) return out;
+  const rows: Course[] = await db.select().from(courses).where(inArray(courses.id, uniq));
+  if (rows.length === 0) return out;
+  const patterns = await loadPatterns(rows);
+  const need = [
+    ...new Set(
+      rows
+        .filter((r) => !r.institutionPhone && r.institution)
+        .map((r) => r.institution as string),
+    ),
+  ];
+  const instPhone = new Map<string, string>();
+  if (need.length > 0) {
+    const insts = await db
+      .select({ institution: institutions.institution, phone: institutions.phone })
+      .from(institutions)
+      .where(and(inArray(institutions.institution, need), isNotNull(institutions.phone)));
+    for (const i of insts) {
+      if (i.phone && !instPhone.has(i.institution)) instPhone.set(i.institution, i.phone);
+    }
+  }
+  for (const r of rows) {
+    const phone = r.institutionPhone || (r.institution ? instPhone.get(r.institution) ?? null : null);
+    out.set(r.id, { ...attach(r, patterns, today), phone });
+  }
+  return out;
 }
 
 export type AreaTree = {

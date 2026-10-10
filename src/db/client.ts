@@ -1,7 +1,7 @@
-import { createClient } from "@libsql/client";
+import { createClient, type Client } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 
-function makeClient() {
+function makeClient(): Client {
   const url = process.env.TURSO_DATABASE_URL;
   if (!url) {
     throw new Error(
@@ -12,4 +12,6 @@ function makeClient() {
   return createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });
 }
 
-export const db = drizzle(makeClient());
+/** libsql 클라이언트(앱 테이블 DDL 용). `db` 와 같은 연결을 쓴다. */
+export const client = makeClient();
+export const db = drizzle(client);

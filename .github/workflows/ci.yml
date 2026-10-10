@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      # 린트·vitest 용. e2e 서버 env(e2e.db 복사본·DIDIM_TODAY·DIDIM_OTP_ECHO·CRON_SECRET)는 playwright.config.ts 가 넣는다.
       TURSO_DATABASE_URL: file:./data/fixture.db
-      # e2e 기준일(DIDIM_TODAY)은 playwright.config.ts 가 fixture-ids.json 에서 넣는다. 이 플래그가 있어야 앱이 그 값을 쓴다.
       DIDIM_ALLOW_TODAY_OVERRIDE: "1"
     steps:
       - uses: actions/checkout@v4

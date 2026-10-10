@@ -32,7 +32,8 @@
 
 ```bash
 pnpm install
-TURSO_DATABASE_URL=file:./data/fixture.db pnpm dev   # 로컬 개발 서버
+cp data/fixture.db data/dev.db                        # 처음 한 번(개발 DB. 로그인·알림 행이 여기 쌓인다)
+pnpm dev                                              # 로컬 개발 서버(.env.development.local → dev.db)
 pnpm test                                             # vitest 단위 테스트
 pytest pipeline                                       # 파이프라인 테스트
 pnpm e2e                                              # Playwright e2e(헤드리스, 390×844)
@@ -40,7 +41,9 @@ pnpm build                                            # 프로덕션 빌드
 pnpm lint                                             # 린트
 ```
 
-- `TURSO_DATABASE_URL=file:...` 로 주면 같은 코드가 파일 DB 를 읽습니다. 원격 Turso 가 필요 없습니다.
+- `TURSO_DATABASE_URL=file:...` 로 주면 같은 코드가 파일 DB 를 읽습니다. 원격 Turso 가 필요 없습니다. 커밋되는 `fixture.db` 를 개발 서버에 직접 물리지 마세요(로그인하면 전화번호가 그 파일에 남습니다).
+- 모든 화면은 요청 때 렌더됩니다(상단 「로그인/내 알림」이 쿠키를 읽음). 쿠키가 없으면 DB 를 치지 않습니다.
+- 로컬 `pnpm e2e` 는 이미 떠 있는 3000번 서버를 재사용합니다(`e2e.db` 를 새로 복사하지 않음). 깨끗이 돌리려면 `CI=1 pnpm e2e`.
 - e2e 는 `e2e/fixture-ids.json` 의 `today` 값을 `DIDIM_TODAY` 로(`DIDIM_ALLOW_TODAY_OVERRIDE=1` 과 함께) 넘겨 기준일을 고정합니다. 그래서 접수 상태 문구가 날짜에 흔들리지 않습니다.
 
 ## 데이터 수집
@@ -112,6 +115,48 @@ vercel --global-config ~/.vercel-ynr0402 --prod        # 프로덕션 배포
 - `vercel.yml` 에는 레포 시크릿 `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` 가 필요합니다. 사용자가 레포 Settings 에 넣습니다.
 - 시크릿을 아직 넣지 않았다면 `vercel.yml` 실패는 정상입니다.
 - 본선 전에 민관협력 지원 플랫폼(클라우드)으로 옮길 예정입니다.
+
+## 로그인·접수 알림 (M2-a, 2026-10-10)
+
+전화번호와 문자 6자리로 로그인하면 강좌 카드의 「관심 강좌로 접수 알림 받기」가 실제 알림이 됩니다.
+
+### 흐름
+
+1. 강좌 카드(접수 전 강좌만) → 「관심 강좌로 접수 알림 받기」 → 로그인(처음 한 번, `/login`)
+2. 등록 화면(`/alert/[id]`)에서 문자 2번의 날짜를 보여 줍니다. 「문자 미리보기」(`/alert/[id]/sms`)에서 실제 문안을 볼 수 있습니다.
+3. 「내 알림」(`/me`)에서 강좌별로 알림을 끄거나 빼고, 「내 번호 지우기」로 번호와 알림을 모두 지웁니다.
+
+### 문자 규칙
+
+| 문자 | 언제 | 창 |
+|---|---|---|
+| 접수 3일 전 | 접수 시작일 − 3일, 저녁 6시 | 18시 이후 그날 안 |
+| 접수 당일 | 접수 시작일, 아침 8시 | 8시~12시 |
+
+- 접수 시작일은 확정값(`apply_start`)을 쓰고, 없으면 예상일(`enrollment_patterns.next_open_estimate`)을 쓰며 문안에 「예상이며 확정 아님」을 붙입니다.
+- 접수 시각은 강남구 동복합문화센터만 「오전 9시」를 씁니다(계약 §11 권역 규칙). 다른 소스는 시각을 쓰지 않습니다.
+- 창을 지나면 늦게 보내지 않습니다. 같은 알림·같은 종류는 한 번만 보냅니다(`sms_log` 유니크).
+- 크론은 `vercel.json` 의 `0 9 * * *`·`0 23 * * *`(UTC = 18시·08시 KST)가 `GET /api/cron/notify` 를 부릅니다. Vercel Hobby 는 정각~59분 사이에 실행됩니다.
+
+### 환경변수
+
+| 이름 | 어디 | 뜻 |
+|---|---|---|
+| `CRON_SECRET` | Vercel·`.env.local` | 크론 호출 인증. Vercel 이 `Authorization: Bearer` 로 보냅니다 |
+| `SOLAPI_API_KEY` `SOLAPI_API_SECRET` `SOLAPI_SENDER` | Vercel | 솔라피 문자 발송. 셋 다 있어야 보냅니다. 없으면 `console` 공급자(발송 없이 기록만, `sms_log.status='dry'`) |
+| `DIDIM_OTP_ECHO` | 로컬·CI 만 | `1` 이면 인증번호를 API 응답에 돌려줍니다(e2e 용). Vercel(`VERCEL_ENV` 있음)이거나 DB 가 `file:` 이 아니면 무시됩니다 |
+| `DIDIM_NOW` | e2e | `YYYY-MM-DDTHH:MM`. `DIDIM_ALLOW_TODAY_OVERRIDE=1` 일 때만 |
+| `DIDIM_INSECURE_COOKIE` | — | `1` 이면 세션 쿠키 `secure` 를 끕니다(https 가 아닌 곳에서 production 빌드를 돌릴 때만. Vercel 에서는 무시) |
+
+- 솔라피 가입·발신번호 등록·키 발급은 사용자가 합니다. 키를 Vercel 에 넣으면 코드 수정 없이 문자가 나갑니다.
+- `pnpm dev` 는 `.env.development.local` 의 `TURSO_DATABASE_URL=file:./data/dev.db` 를 씁니다. 운영 Turso 에 테스트 사용자를 쌓지 않기 위해서입니다.
+
+### 데이터와 개인정보
+
+- 앱 테이블 5개(`users` `otp_codes` `sessions` `alerts` `sms_log`)는 `src/db/app-schema.ts` 에 있고, 앱이 첫 접근 때 `CREATE TABLE IF NOT EXISTS` 로 만듭니다. `pnpm db:app` 으로 미리 만들 수도 있습니다. 파이프라인 `schema.sql` 과 Turso 교체 스크립트는 이 테이블을 건드리지 않습니다.
+- 번호는 알림에만 씁니다. 「내 번호 지우기」는 사용자·세션·알림·인증 기록·문자 기록을 모두 지웁니다. 안내는 `/privacy`(초안).
+- 인증번호는 해시로만 저장하고 5분 뒤 만료, 5번 틀리면 잠깁니다. 문자 요청은 번호당 10분 3회·하루 10회, 전체 1시간 100회·하루 500회로 제한합니다(집계와 기록을 한 문장으로 해 동시 요청도 상한을 넘지 못합니다). 한 사람이 켜 둘 수 있는 알림은 30개입니다.
+- IP 단위 제한은 없습니다(서버리스, KV 없음). 필요하면 Vercel Firewall 규칙으로 `/api/auth/send-code` 를 막습니다.
 
 ## 규칙 요약
 

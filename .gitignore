@@ -20,6 +20,7 @@ __pycache__/
 # data (big) — fixture.db 는 커밋한다
 data/didimkan.db
 data/dev.db
+data/e2e.db
 data/*.db-journal
 data/*.db-wal
 pipeline/out/
