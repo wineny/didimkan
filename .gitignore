@@ -1,0 +1,35 @@
+# secrets
+.env
+.env*.local
+# node
+node_modules/
+.next/
+out/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+# tests
+test-results/
+playwright-report/
+coverage/
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+# data (big) — fixture.db 는 커밋한다
+data/didimkan.db
+data/*.db-journal
+data/*.db-wal
+pipeline/out/
+pipeline/raw/
+# os
+.DS_Store
+/.pnp
+.pnp.*
+/build
+*.pem
+npm-debug.log*
+.pnpm-debug.log*
+# e2e screenshots (사람 검토용, 커밋 안 함)
+e2e/shots/

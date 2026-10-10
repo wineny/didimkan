@@ -1,0 +1,63 @@
+# CI: push 와 pull_request 마다 린트 → 단위 테스트 → 파이프라인 테스트 → e2e 를 순서대로 돌린다.
+# 실제 DB 대신 fixture.db(data/fixture.db)를 쓴다. 환경변수 TURSO_DATABASE_URL 을 job 전체에 넣어,
+# 환경변수가 없는 빌드가 빈 원격 DB 를 치지 않게 한다.
+# 이 워크플로는 시크릿을 쓰지 않는다.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TURSO_DATABASE_URL: file:./data/fixture.db
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: pnpm 설치
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Node 22 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 의존성 설치
+        run: pnpm install --frozen-lockfile
+
+      - name: 린트
+        run: pnpm lint
+
+      - name: 단위 테스트 (vitest)
+        run: pnpm test
+
+      - name: Python 3.12 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 파이프라인 의존성 설치
+        run: pip install -r pipeline/requirements.txt
+
+      - name: 파이프라인 테스트 (pytest)
+        run: pytest pipeline
+
+      - name: Playwright 브라우저 설치
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: e2e 테스트
+        run: pnpm e2e
+
+      - name: 실패 시 e2e 리포트 업로드
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore

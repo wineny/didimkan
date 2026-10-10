@@ -1,0 +1,72 @@
+# Vercel 배포 (ynr0402 계정)
+# 시크릿은 사용자가 레포 Settings → Secrets 에 넣는다: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.
+# 시크릿이 없으면 이 워크플로 실패는 정상이다.
+# GitHub 로그인(wineny)이 회사 Vercel 계정에 묶여 있어 Vercel 의 git 자동배포를 쓸 수 없다.
+# 대신 push 마다 여기서 배포한다. main → Production, 그 밖의 브랜치 → Preview.
+# Vercel 이 하던 대로 GitHub Deployment 와 「Vercel」 커밋 상태를 남겨,
+# PR 화면에서 프리뷰 주소와 빌드 결과가 그대로 보이게 한다.
+name: Vercel
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: write
+  statuses: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+      PROD: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: GitHub 배포 기록 시작
+        id: gd
+        run: |
+          ENV=$([ "$PROD" = true ] && echo Production || echo Preview)
+          ID=$(jq -n --arg ref "$GITHUB_SHA" --arg env "$ENV" \
+            '{ref:$ref, environment:$env, auto_merge:false, required_contexts:[],
+              transient_environment:($env=="Preview"), production_environment:($env=="Production")}' \
+            | gh api "repos/$GITHUB_REPOSITORY/deployments" --input - --jq .id)
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+          gh api "repos/$GITHUB_REPOSITORY/deployments/$ID/statuses" -f state=in_progress > /dev/null
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=pending -f context=Vercel -f description="Building" > /dev/null
+
+      - name: Vercel 배포
+        id: dep
+        run: |
+          # .git 을 지워 커밋 작성자 정보를 안 보낸다. 보내면 Hobby 가 「작성자 wineny 가 팀원이 아님」으로 막는다(BLOCKED).
+          rm -rf .git
+          ARGS=(--yes --token="$VERCEL_TOKEN")
+          if [ "$PROD" = true ]; then ARGS+=(--prod); fi
+          URL=$(npx --yes vercel@latest deploy "${ARGS[@]}" --env APP_COMMIT_SHA="$GITHUB_SHA" | tail -1)
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: 성공 기록
+        run: |
+          RUN="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh api "repos/$GITHUB_REPOSITORY/deployments/${{ steps.gd.outputs.id }}/statuses" \
+            -f state=success -f environment_url="${{ steps.dep.outputs.url }}" -f log_url="$RUN" > /dev/null
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context=Vercel \
+            -f description="Deployment has completed" -f target_url="${{ steps.dep.outputs.url }}" > /dev/null
+
+      - name: 실패 기록
+        if: (failure() || cancelled()) && steps.gd.outputs.id
+        run: |
+          RUN="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh api "repos/$GITHUB_REPOSITORY/deployments/${{ steps.gd.outputs.id }}/statuses" -f state=failure -f log_url="$RUN" > /dev/null
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=failure -f context=Vercel \
+            -f description="Deployment has failed" -f target_url="$RUN" > /dev/null
