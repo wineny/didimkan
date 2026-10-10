@@ -94,3 +94,23 @@ def test_norm_key():
 def test_decode_bytes_cp949():
     text, enc = p.decode_bytes("강좌명".encode("cp949"))
     assert text == "강좌명" and enc == "cp949"
+
+
+# ---------- 링크 주소(http/https 만) ----------
+
+def test_safe_http_url_blocks_javascript():
+    assert p.safe_http_url("javascript:;") is None
+    assert p.safe_http_url("JavaScript:alert(1)") is None
+
+
+def test_safe_http_url_adds_https_to_www():
+    assert p.safe_http_url(" www.x.go.kr ") == "https://www.x.go.kr"
+    assert p.safe_http_url("http://a.go.kr/p?q=1") == "http://a.go.kr/p?q=1"
+
+
+def test_safe_http_url_blocks_data_and_empty():
+    assert p.safe_http_url("data:text/html,<b>x</b>") is None
+    assert p.safe_http_url("") is None
+    assert p.safe_http_url("   ") is None
+    assert p.safe_http_url(None) is None
+    assert p.safe_http_url("https://") is None

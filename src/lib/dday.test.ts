@@ -21,8 +21,11 @@ describe("ddayLabel", () => {
   it("상태별 문구", () => {
     expect(ddayLabel({ status: "before", isEstimate: false, date: "2026-10-13" }, T)).toBe("이번 접수 D-3");
     expect(ddayLabel({ status: "before", isEstimate: true, date: "2026-10-13" }, T)).toBe("접수 예상 D-3 · 예상이며 확정 아님");
-    expect(ddayLabel({ status: "open", isEstimate: false, date: "2026-10-20" }, T)).toBe("접수 중 · ~10/20");
+    expect(ddayLabel({ status: "open", isEstimate: false, date: "2026-10-20" }, T)).toBe("접수 중 · 마감 D-10");
+    expect(ddayLabel({ status: "open", isEstimate: false, date: T }, T)).toBe("접수 중 · 오늘 마감");
+    expect(ddayLabel({ status: "open", isEstimate: false }, T)).toBe("접수 중");
     expect(ddayLabel({ status: "closed", isEstimate: false }, T)).toBe("지난 회차");
+    expect(ddayLabel({ status: "closed", isEstimate: false, date: "2026-10-01" }, T)).toBe("지난 회차");
     expect(ddayLabel({ status: "always", isEstimate: false }, T)).toBe("연중 · 수시 접수");
     expect(ddayLabel({ status: "unknown", isEstimate: false }, T)).toBe("접수일 확인 안 됨");
   });

@@ -351,3 +351,14 @@ def test_no_banned_words_in_source():
     from pathlib import Path
     text = Path(derive.__file__).read_text(encoding="utf-8")
     assert not BANNED.search(text)
+
+
+def test_derive_all_filters_unsafe_urls():
+    rows = derive_all([
+        course(detail_url="javascript:;", homepage_url="www.x.go.kr"),
+        course(detail_url="https://a.go.kr/1", homepage_url="data:text/html,x"),
+    ], date(2026, 10, 10))
+    assert rows[0]["detail_url"] is None
+    assert rows[0]["homepage_url"] == "https://www.x.go.kr"
+    assert rows[1]["detail_url"] == "https://a.go.kr/1"
+    assert rows[1]["homepage_url"] is None

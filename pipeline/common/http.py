@@ -1,4 +1,6 @@
-"""예의 있는 HTTP: 호스트별 최소 간격, robots.txt 준수(data.go.kr 제외), 재시도 2회."""
+"""예의 있는 HTTP: 호스트별 최소 간격, robots.txt 준수(data.go.kr 제외), 재시도 2회.
+
+robots.txt 가 없으면(4xx) 전부 허용, 5xx·네트워크 오류로 못 받으면 그 호스트 전체를 막는다(RFC 9309 §2.3.1.4)."""
 import time
 import urllib.robotparser
 from urllib.parse import urlsplit
@@ -75,7 +77,8 @@ def robots_allowed(url: str, source: str = "http", failures_: Failures | None = 
             rp.parse(body.splitlines())
         _robots_cache[host] = rp
     rp = _robots_cache[host]
-    return True if rp is None else rp.can_fetch(ROBOTS_TOKEN, url)
+    # None = robots.txt 를 못 받음 → 전부 막는다(RFC 9309: 5xx 는 전면 차단으로 본다).
+    return False if rp is None else rp.can_fetch(ROBOTS_TOKEN, url)
 
 
 def _do_request(method: str, url: str, headers: dict, data, timeout: int) -> bytes:

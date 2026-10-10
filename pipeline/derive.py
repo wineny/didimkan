@@ -23,6 +23,8 @@ import re
 from datetime import date, timedelta
 from statistics import median
 
+from pipeline.common.parse import safe_http_url
+
 WEEKDAYS = "월화수목금토일"
 SIGNAL_KEYS = ("free", "basic", "small", "lottery", "once", "online", "welcome", "no_supplies")
 FEE_LIMIT = 50_000
@@ -320,6 +322,9 @@ def derive_all(rows: list[dict], today: date) -> list[dict]:
     out: list[dict] = []
     for r in rows:
         row = dict(r)
+        # 링크는 http(s) 만 남긴다(javascript:·data: 차단). 소스 모듈마다 거르지 않고 여기 한 곳에서.
+        row["detail_url"] = safe_http_url(row.get("detail_url"))
+        row["homepage_url"] = safe_http_url(row.get("homepage_url"))
         # contract §6(수정 2026-10-10): 강남 REST 에는 체육관·테니스장도 섞여 있어
         # 기관명으로 판정한다(「복합문화센터」 포함 시 1).
         row["is_dong_center"] = is_dong_center(row.get("institution"), row.get("venue"))

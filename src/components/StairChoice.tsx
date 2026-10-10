@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import type { Stair } from "@/db/schema";
 import { STAIR_SUB } from "@/lib/copy";
-import { getStair, setStair } from "@/lib/storage";
+import { getArea, getStair, setStair } from "@/lib/storage";
 import Button from "./Button";
 import ChoiceList from "./ChoiceList";
 
@@ -21,10 +22,26 @@ function subscribe(cb: () => void) {
   return () => void listeners.delete(cb);
 }
 
+/** R1: 지난번 고른 동네로 바로 홈 목록을 연다. */
+function resumeHref(stair: Stair, area: ReturnType<typeof getArea>): string {
+  const q = new URLSearchParams({ st: String(stair) });
+  for (const k of ["sido", "sigungu", "dong"] as const) {
+    const v = area[k];
+    if (v) q.set(k, v);
+  }
+  return `/home?${q.toString()}`;
+}
+
 export default function StairChoice() {
   const router = useRouter();
   // 서버 렌더는 기본 2단, 브라우저에서 저장된 값이 있으면 그걸로 바뀐다.
   const stair = useSyncExternalStore(subscribe, getStair, () => 2 as Stair);
+
+  // 저장된 동네(JSON 문자열로 비교해야 매번 새 객체가 아니어서 다시 그리기가 멈춘다)
+  const areaJson = useSyncExternalStore(subscribe, () => JSON.stringify(getArea()), () => "{}");
+  const area = JSON.parse(areaJson) as ReturnType<typeof getArea>;
+  const resume = area.sido ? resumeHref(stair, area) : null;
+  const resumeLabel = [area.sigungu ?? area.sido, area.dong].filter(Boolean).join(" ");
 
   const items = ([1, 2, 3] as const).map((k) => ({ value: String(k), title: TITLES[k], sub: STAIR_SUB[k] }));
 
@@ -49,6 +66,11 @@ export default function StairChoice() {
             }}
           />
         </div>
+        {resume ? (
+          <Link href={resume} className="sbtn gap-skip" data-resume>
+            이어서 보기 · {resumeLabel}
+          </Link>
+        ) : null}
         <p className="note">로그인하지 않아도 볼 수 있어요</p>
       </main>
       <Button data-next onClick={() => router.push(`/where?st=${stair}`)}>

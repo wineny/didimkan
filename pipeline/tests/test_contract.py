@@ -100,6 +100,7 @@ def test_indexes_present_in_both() -> None:
         "idx_courses_sido_sigungu": ("courses", ("sido", "sigungu")),
         "idx_courses_institution": ("courses", ("institution",)),
         "idx_courses_apply_start": ("courses", ("apply_start",)),
+        "idx_courses_stair_region": ("courses", ("stair", "sido", "sigungu")),
         "idx_enrollment_patterns_institution_sigungu":
             ("enrollment_patterns", ("institution", "sigungu")),
     }

@@ -4,6 +4,7 @@ import hashlib
 import re
 from datetime import date
 from pathlib import Path
+from urllib.parse import urlsplit
 
 WEEKDAYS = "월화수목금토일"
 DATE_RE = re.compile(r"^(\d{4})[-./]?(\d{1,2})[-./]?(\d{1,2})$")
@@ -140,6 +141,25 @@ def normalize_sigungu(raw: str | None) -> str | None:
         return None
     s = re.sub(r"\s+", "", raw)
     return SIGUNGU_FIX.get(s, s)
+
+
+def safe_http_url(v: str | None) -> str | None:
+    """링크로 내보내도 되는 http(s) 주소만 돌려준다. 공백 제거, `www.` 로 시작하면 https:// 를 붙인다.
+    `javascript:`·`data:`·빈 값·호스트 없는 값은 None."""
+    if v is None:
+        return None
+    s = re.sub(r"\s+", "", str(v))
+    if not s:
+        return None
+    if s.lower().startswith("www."):
+        s = "https://" + s
+    try:
+        parts = urlsplit(s)
+    except ValueError:
+        return None
+    if parts.scheme.lower() not in ("http", "https") or not parts.netloc:
+        return None
+    return s
 
 
 def norm_key(s: str | None) -> str:

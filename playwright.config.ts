@@ -34,7 +34,7 @@ export default defineConfig({
     timeout: 240_000,
     env: {
       TURSO_DATABASE_URL: 'file:./data/fixture.db',
-      ...(today ? { DIDIM_TODAY: today } : {}),
+      ...(today ? { DIDIM_TODAY: today, DIDIM_ALLOW_TODAY_OVERRIDE: '1' } : {}),
     },
   },
 });

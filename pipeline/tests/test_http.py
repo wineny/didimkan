@@ -67,11 +67,53 @@ def test_robots_disallow_blocks_request(env, monkeypatch):
     assert len(calls) == 1
 
 
-def test_robots_unavailable_allows_with_note(env, monkeypatch):
+def test_robots_unavailable_blocks_with_note(env, monkeypatch):
+    # RFC 9309: robots.txt 가 5xx·네트워크 오류면 그 호스트 전체를 막는다.
     clock, calls = env
     monkeypatch.setattr(http, "_fetch_robots", lambda o: None)
-    assert http.get("https://example.org/x") == b"ok"
-    assert [f["reason"] for f in http.failures.items] == ["robots_unavailable"]
+    with pytest.raises(http.RobotsBlocked):
+        http.get("https://example.org/x", source="s2")
+    assert calls == []
+    assert [f["reason"] for f in http.failures.items] == ["robots_unavailable", "robots"]
+    # 캐시돼서 두 번째도 막히고 robots.txt 를 다시 받지 않는다.
+    monkeypatch.setattr(http, "_fetch_robots", lambda o: pytest.fail("재조회 금지"))
+    with pytest.raises(http.RobotsBlocked):
+        http.get("https://example.org/y")
+
+
+def test_robots_network_error_blocks(env, monkeypatch):
+    clock, calls = env
+
+    def down(origin):
+        raise OSError("timeout")
+
+    monkeypatch.setattr(http, "_fetch_robots", down)
+    assert http.robots_allowed("https://example.org/x") is False
+    assert http.failures.items[0]["reason"] == "robots_unavailable"
+    assert "OSError" in http.failures.items[0]["detail"]
+
+
+def test_robots_missing_4xx_allows(monkeypatch):
+    class Resp:
+        status_code = 404
+        text = "not found"
+
+    monkeypatch.setattr(http, "_robots_cache", {})
+    monkeypatch.setattr(http, "_last_request", {})
+    monkeypatch.setattr(http, "failures", Failures())
+    monkeypatch.setattr(http.requests, "get", lambda *a, **k: Resp())
+    assert http._fetch_robots("https://example.org") == ""
+    assert http.robots_allowed("https://example.org/x") is True
+    assert http.failures.items == []
+
+
+def test_robots_5xx_is_unavailable(monkeypatch):
+    class Resp:
+        status_code = 503
+        text = ""
+
+    monkeypatch.setattr(http.requests, "get", lambda *a, **k: Resp())
+    assert http._fetch_robots("https://example.org") is None
 
 
 def test_retry_then_fail(env, monkeypatch):

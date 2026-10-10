@@ -41,7 +41,7 @@ pnpm lint                                             # 린트
 ```
 
 - `TURSO_DATABASE_URL=file:...` 로 주면 같은 코드가 파일 DB 를 읽습니다. 원격 Turso 가 필요 없습니다.
-- e2e 는 `e2e/fixture-ids.json` 의 `today` 값을 `DIDIM_TODAY` 로 넘겨 기준일을 고정합니다. 그래서 접수 상태 문구가 날짜에 흔들리지 않습니다.
+- e2e 는 `e2e/fixture-ids.json` 의 `today` 값을 `DIDIM_TODAY` 로(`DIDIM_ALLOW_TODAY_OVERRIDE=1` 과 함께) 넘겨 기준일을 고정합니다. 그래서 접수 상태 문구가 날짜에 흔들리지 않습니다.
 
 ## 데이터 수집
 

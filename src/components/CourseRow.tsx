@@ -101,10 +101,11 @@ export function toView(c: CourseWithStatus, query: string): CourseView {
   };
 }
 
-/** 「출처 · 수집일」 한 줄용 */
+/** 「출처 · 수집일」 한 줄용. 사진이 없으면(분야 없음) AI 이미지 문구는 뺀다. */
 export function sourceLine(v: CourseView): string {
   const [, m, d] = v.collectedAt.split("-").map(Number);
-  return `${v.source} · ${m}월 ${d}일 수집 · AI 생성 시범 이미지`;
+  const ai = photoOf(v.category) ? " · AI 생성 시범 이미지" : "";
+  return `${v.source} · ${m}월 ${d}일 수집${ai}`;
 }
 
 /** 목록 한 줄: 제목 · 센터 · 요일시간 · 접수 · 이유. 구분선 행. thumb 가 있으면 오른쪽에 사진. */

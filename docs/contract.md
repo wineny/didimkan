@@ -251,8 +251,8 @@ D-n 은 `날짜 − today` 의 달력 일수(한국 시간). 접수일이 없으
 ## 13. 기준일 `today` (R3)
 
 - **파이프라인**: `--today YYYY-MM-DD` 인자로 받는다. 기본값은 실행 시 `date +%F`. 규칙 함수는 모두 `today` 를 인자로 받고, 코드에 날짜를 박지 않는다.
-- **앱**: 환경변수 `DIDIM_TODAY`(YYYY-MM-DD)가 있고 형식이 맞으면 그 날짜. 단 `VERCEL_ENV=production` 이면 무시한다. 없으면 실제 오늘(Asia/Seoul 기준 날짜).
-- **e2e**: `make_fixture.py` 가 고른 날짜를 `e2e/fixture-ids.json` 의 `today` 와 `meta.today_hint` 에 같이 쓴다. `playwright.config.ts` 가 그 값을 `DIDIM_TODAY` 로 넘긴다. 날짜는 9632 가 `open`/`before`, 2722 가 추첨 표시, 8218 이 `always` 가 되도록 실제 데이터에서 고른다.
+- **앱**: 환경변수 `DIDIM_TODAY`(YYYY-MM-DD)가 있고 형식이 맞고 `DIDIM_ALLOW_TODAY_OVERRIDE=1` 이면 그 날짜. 단 `VERCEL_ENV=production` 이면 무시한다. 없으면 실제 오늘(Asia/Seoul 기준 날짜).
+- **e2e**: `make_fixture.py` 가 고른 날짜를 `e2e/fixture-ids.json` 의 `today` 와 `meta.today_hint` 에 같이 쓴다. `playwright.config.ts` 가 그 값을 `DIDIM_TODAY` 로, `DIDIM_ALLOW_TODAY_OVERRIDE=1` 과 함께 넘긴다. 날짜는 9632 가 `open`/`before`, 2722 가 추첨 표시, 8218 이 `always` 가 되도록 실제 데이터에서 고른다.
 
 ## 14. meta 키
 

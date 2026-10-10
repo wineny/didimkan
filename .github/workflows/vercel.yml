@@ -50,9 +50,10 @@ jobs:
         run: |
           # .git 을 지워 커밋 작성자 정보를 안 보낸다. 보내면 Hobby 가 「작성자 wineny 가 팀원이 아님」으로 막는다(BLOCKED).
           rm -rf .git
-          ARGS=(--yes --token="$VERCEL_TOKEN")
+          # 토큰은 환경변수 VERCEL_TOKEN 을 CLI 가 직접 읽는다(명령줄에 안 남김).
+          ARGS=(--yes)
           if [ "$PROD" = true ]; then ARGS+=(--prod); fi
-          URL=$(npx --yes vercel@latest deploy "${ARGS[@]}" --env APP_COMMIT_SHA="$GITHUB_SHA" | tail -1)
+          URL=$(npx --yes vercel@59.11.7 deploy "${ARGS[@]}" --env APP_COMMIT_SHA="$GITHUB_SHA" | tail -1)
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
       - name: 성공 기록

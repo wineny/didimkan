@@ -131,6 +131,7 @@ export const courses = sqliteTable(
     index("idx_courses_sido_sigungu").on(t.sido, t.sigungu),
     index("idx_courses_institution").on(t.institution),
     index("idx_courses_apply_start").on(t.applyStart),
+    index("idx_courses_stair_region").on(t.stair, t.sido, t.sigungu),
   ],
 );
 

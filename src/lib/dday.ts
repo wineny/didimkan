@@ -24,8 +24,12 @@ export function ddayLabel(r: StatusResult, today: string): string {
         ? `접수 예상 ${d} · 예상이며 확정 아님`
         : `이번 접수 ${d}`;
     }
-    case "open":
-      return r.date ? `접수 중 · ~${r.date.slice(5, 7)}/${r.date.slice(8, 10)}` : "접수 중";
+    case "open": {
+      // contract §10: 마감일 있으면 「마감 D-n」, 당일은 「오늘 마감」
+      if (!r.date) return "접수 중";
+      const d = dday(r.date, today);
+      return d === "D-day" ? "접수 중 · 오늘 마감" : `접수 중 · 마감 ${d}`;
+    }
     case "closed":
       return "지난 회차";
     case "always":

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { NOTIFY_SHEET } from "@/lib/copy";
+import { safeHttpUrl } from "@/lib/url";
 import BottomSheet from "./BottomSheet";
 
 /** 파란 「관심 강좌로 접수 알림 받기」. 누르면 11월에 열린다는 시트가 올라온다. */
@@ -13,6 +14,7 @@ export default function NotifyButton({
   siteUrl: string | null;
 }) {
   const [open, setOpen] = useState(false);
+  const site = safeHttpUrl(siteUrl);
   return (
     <>
       <button type="button" className="cta c-notify" data-notify onClick={() => setOpen(true)}>
@@ -25,8 +27,8 @@ export default function NotifyButton({
             전화하기 · {phone}
           </a>
         ) : null}
-        {siteUrl ? (
-          <a className="sbtn c-sheet-btn" href={siteUrl} target="_blank" rel="noopener noreferrer">
+        {site ? (
+          <a className="sbtn c-sheet-btn" href={site} target="_blank" rel="noopener noreferrer">
             기관 사이트 열기
           </a>
         ) : null}

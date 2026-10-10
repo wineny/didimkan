@@ -1,6 +1,6 @@
 import type { Course, Stair } from "@/db/schema";
 
-export const FORBIDDEN = ["창구", "대신", "고독사 위험"] as const;
+export const FORBIDDEN = ["창구", "대신", "고독사 위험", "수강생"] as const;
 
 export const STAIR_NAMES: Record<Stair, string> = {
   1: "아직은 집에서",

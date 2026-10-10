@@ -5,6 +5,7 @@ import NotifyButton from "@/components/NotifyButton";
 import Shell from "@/components/Shell";
 import { getCourse, type CourseWithStatus } from "@/db/queries";
 import { ESTIMATE_NOTE, LOTTERY_NOTE, NO_PHONE, NO_SIGNAL, capacityHint, tiles } from "@/lib/copy";
+import { safeHttpUrl } from "@/lib/url";
 import "./course.css";
 
 const PHOTO: Record<string, string> = {
@@ -80,11 +81,12 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
   const tile = (k: string) => t.find((x) => x.key === k)!;
   const photo = c.category ? PHOTO[c.category] : undefined;
   const lottery = c.selectionMethod === "추첨" || (c.signals as string[]).includes("lottery");
-  const siteUrl = c.detailUrl ?? c.homepageUrl ?? null;
+  const siteUrl = safeHttpUrl(c.detailUrl) ?? safeHttpUrl(c.homepageUrl);
   const org = c.source === "gangnam" || c.source.startsWith("seoul_") ? sourceName(c.source) : (c.institution ?? "기관");
   const tel = c.phone ? `tel:${c.phone.replace(/[^\d+]/g, "")}` : null;
   const quote = signalQuote(c);
   const st = c.status;
+  const always = st.status === "always";
 
   const when = [c.weekdays?.replace(/,/g, "·"), timeRange(c.startTime, c.endTime)].filter(Boolean).join(" ");
   const heroSub = [c.venue ?? c.institution, when].filter(Boolean).join(" · ");
@@ -150,10 +152,10 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
                 {st.basisCount ? ` · 과거 ${st.basisCount}회 기준` : ""}
               </p>
             ) : null}
-            {st.status === "always" ? (
+            {always ? (
               <>
                 <p className="c-note">언제든 신청할 수 있어요. 궁금하면 전화로 물어보세요.</p>
-                <p className="c-bigphone">{c.phone ?? NO_PHONE}</p>
+                {c.phone ? <p className="c-bigphone">{c.phone}</p> : null}
               </>
             ) : null}
             {st.status === "unknown" ? (
@@ -177,6 +179,10 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
               <span>기관에 전화하기</span>
               <b>{c.phone}</b>
             </a>
+          ) : always ? (
+            <p className="c-note c-nophone" data-always-nophone>
+              언제든 동에 전화하거나 들르면 됩니다 · {NO_PHONE}
+            </p>
           ) : (
             <p className="c-note c-nophone">{NO_PHONE}</p>
           )}
@@ -193,7 +199,8 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
           ) : (
             <p className="c-note c-noapply">신청은 기관에 전화로</p>
           )}
-          <NotifyButton phone={c.phone} siteUrl={siteUrl} />
+          {/* 연중·수시는 기다릴 접수일이 없으니 알림 대신 위의 큰 전화 버튼만 둔다. */}
+          {always ? null : <NotifyButton phone={c.phone} siteUrl={siteUrl} />}
         </div>
       </main>
     </Shell>

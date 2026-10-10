@@ -72,6 +72,7 @@ CREATE INDEX idx_courses_stair ON courses (stair);
 CREATE INDEX idx_courses_sido_sigungu ON courses (sido, sigungu);
 CREATE INDEX idx_courses_institution ON courses (institution);
 CREATE INDEX idx_courses_apply_start ON courses (apply_start);
+CREATE INDEX idx_courses_stair_region ON courses (stair, sido, sigungu);
 
 CREATE TABLE institutions (
   institution TEXT NOT NULL,

@@ -1,7 +1,8 @@
 // 조회 함수. 계약: docs/contract.md §10(접수 상태·정렬), R7·R9.
 // 지역은 걸러내는 조건이 아니라 정렬 기준이다. DB 에서는 계단으로만 거르고,
-// 같은 시도 행을 먼저 가져온 뒤 모자라면 나머지에서 채운다.
-import { and, asc, eq, inArray, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
+// 후보 상한 안에 「가까운」 행이 들어오도록 SQL ORDER BY 에서 지역 일치·마감·접수 중을 먼저 본다.
+// 최종 순서는 메모리 sortCourses 가 정한다.
+import { and, asc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { db } from "./client";
 import {
   courses,
@@ -52,6 +53,32 @@ function attach(
   return { ...row, pattern, status, ddayLabel: ddayLabel(status, today) };
 }
 
+/**
+ * 지역 일치 순위: 동 0 → 구 1 → 시도 2 → 나머지 3. 1단(온라인)·지역 없음은 순위가 없으니 null
+ * (상수 `ORDER BY 0` 은 SQLite 가 열 번호로 읽어 오류가 나므로 아예 빼야 한다).
+ */
+function areaRankSql(stair: Stair, area: Area): SQL | null {
+  if (stair === 1 || !area.sido) return null;
+  const sido = eq(courses.sido, area.sido);
+  const gu = area.sigungu ? and(sido, eq(courses.sigungu, area.sigungu)) : undefined;
+  const dong = gu && area.dong ? and(gu, eq(courses.dong, area.dong)) : undefined;
+  return sql`CASE${dong ? sql` WHEN ${dong} THEN 0` : sql``}${gu ? sql` WHEN ${gu} THEN 1` : sql``} WHEN ${sido} THEN 2 ELSE 3 END`;
+}
+
+/** 마감이면 1(contract §10 2·6번): 접수 마감일 지남, 또는 접수 시작일 없이 강좌 종료일 지남. 연중·수시는 0. */
+function closedSql(today: string): SQL {
+  return sql`CASE WHEN ${courses.isAlwaysOpen} = 1 THEN 0
+    WHEN ${courses.applyEnd} IS NOT NULL AND ${courses.applyEnd} < ${today} THEN 1
+    WHEN ${courses.applyStart} IS NULL AND ${courses.endDate} IS NOT NULL AND ${courses.endDate} < ${today} THEN 1
+    ELSE 0 END`;
+}
+
+/** 접수 중이면 0(contract §10 4번: 시작일 ≤ today, 마감일 없거나 today ≤ 마감일). */
+function notOpenSql(today: string): SQL {
+  return sql`CASE WHEN ${courses.isAlwaysOpen} = 0 AND ${courses.applyStart} IS NOT NULL AND ${courses.applyStart} <= ${today}
+    AND (${courses.applyEnd} IS NULL OR ${today} <= ${courses.applyEnd}) THEN 0 ELSE 1 END`;
+}
+
 export async function listCourses({
   stair,
   area = {},
@@ -59,30 +86,17 @@ export async function listCourses({
   limit = 10,
   offset = 0,
 }: ListCoursesInput): Promise<CourseWithStatus[]> {
-  // 접수가 확실히 끝난 행(apply_end < today)은 뒤로 보내 후보 상한에 잘리지 않게 한다.
-  const closedLast = sql`CASE WHEN ${courses.applyEnd} IS NOT NULL AND ${courses.applyEnd} < ${today} THEN 1 ELSE 0 END`;
-  const base = eq(courses.stair, stair);
-  const fetchRows = (where: ReturnType<typeof and>) =>
-    db
-      .select()
-      .from(courses)
-      .where(where)
-      .orderBy(closedLast, asc(courses.id))
-      .limit(CANDIDATE_CAP);
-
-  const need = offset + limit;
-  let rows: Course[];
-  if (stair !== 1 && area.sido) {
-    rows = await fetchRows(and(base, eq(courses.sido, area.sido)));
-    if (rows.length < need) {
-      const rest = await fetchRows(
-        and(base, or(isNull(courses.sido), ne(courses.sido, area.sido))),
-      );
-      rows = rows.concat(rest);
-    }
-  } else {
-    rows = await fetchRows(base);
-  }
+  const rows: Course[] = await db
+    .select()
+    .from(courses)
+    .where(eq(courses.stair, stair))
+    .orderBy(
+      ...[areaRankSql(stair, area)].filter((x): x is SQL => x !== null),
+      closedSql(today),
+      notOpenSql(today),
+      asc(courses.id),
+    )
+    .limit(Math.max(CANDIDATE_CAP, offset + limit));
 
   const patterns = await loadPatterns(rows);
   const sorted = sortCourses(rows, { stair, area, today, patterns });
@@ -117,7 +131,22 @@ export type AreaTree = {
   sido: { name: string; sigungu: { name: string; dong: string[] }[] }[];
 };
 
-export async function listAreas(): Promise<AreaTree> {
+/** 지역 목록은 빌드 때만 바뀌므로 서버 메모리에 1시간 둔다(실패하면 버리고 다음 요청에 다시 읽는다). */
+const AREAS_TTL_MS = 60 * 60 * 1000;
+let areasCache: { at: number; tree: Promise<AreaTree> } | null = null;
+
+export function listAreas(): Promise<AreaTree> {
+  const now = Date.now();
+  if (areasCache && now - areasCache.at < AREAS_TTL_MS) return areasCache.tree;
+  const tree = readAreas();
+  areasCache = { at: now, tree };
+  tree.catch(() => {
+    if (areasCache?.tree === tree) areasCache = null;
+  });
+  return tree;
+}
+
+async function readAreas(): Promise<AreaTree> {
   const rows = await db
     .selectDistinct({
       sido: courses.sido,
