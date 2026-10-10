@@ -388,3 +388,22 @@ def test_derive_all_filters_unsafe_urls():
     assert rows[0]["homepage_url"] == "https://www.x.go.kr"
     assert rows[1]["detail_url"] == "https://a.go.kr/1"
     assert rows[1]["homepage_url"] is None
+
+
+def test_children_courses_excluded_from_stairs():
+    from pipeline.derive import is_for_children, stair
+    base = {"is_online": 1, "is_free": 1, "title": "독서교실", "target_raw": "성인", "description": None,
+            "source": "std", "capacity": None, "fee_won": 0, "start_date": None, "end_date": None, "weekday_bits": 0}
+    assert stair(base) == 1
+    assert is_for_children("어린이 독서퀴즈", None)
+    assert is_for_children("독서교실", "만7세-만12세")
+    assert is_for_children("독서교실", "초등학생")
+    assert is_for_children("독서교실", "6-13세")
+    assert not is_for_children("독서교실", "초·중고및 성인")   # 성인 포함
+    assert not is_for_children("독서교실", "누구나")
+    assert not is_for_children("독서교실", "만 65세 이상")
+    assert not is_for_children("성인 독서교실", None)
+    assert stair({**base, "title": "어린이 독서퀴즈", "target_raw": None}) is None
+    assert stair({**base, "title": "어린이 독서퀴즈"}) == 1  # 대상이 「성인」으로 명시되면 제목보다 대상을 따른다
+    assert stair({**base, "target_raw": "초등학생"}) is None
+    assert stair({**base, "target_raw": "초·중고및 성인"}) == 1

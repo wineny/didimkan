@@ -154,7 +154,28 @@ def _fee_ok(row: dict) -> bool:
     return fee is not None and fee <= FEE_LIMIT
 
 
+CHILD_RE = re.compile(r"어린이|영유아|유아|초등|청소년|키즈|아동|미취학|초·중|초중|중학생|고등학생|초등학생")
+ADULT_RE = re.compile(r"성인|어르신|노인|일반|주민|누구나|시민|중장년|시니어|고객|구민|군민|도민|성년|직장인|경력단절|부모|학부모|(?:만\s*)?(?:1[89]|[2-9]\d)세\s*이상")
+AGE_RANGE_RE = re.compile(r"(?:만\s*)?(\d{1,2})\s*세?\s*[-~–]\s*(?:만\s*)?(\d{1,2})\s*세")
+
+
+def is_for_children(title: str | None, target_raw: str | None) -> bool:
+    """어린이·청소년 전용 강좌 판정(디딤칸 대상은 성인). 성인 표현이 함께 있으면 전용이 아니다."""
+    t = title or ""
+    g = target_raw or ""
+    if ADULT_RE.search(g):
+        return False
+    if CHILD_RE.search(g) or CHILD_RE.search(t):
+        return True
+    m = AGE_RANGE_RE.search(g)
+    if m and int(m.group(2)) < 19:
+        return True
+    return False
+
+
 def stair(row: dict) -> int | None:
+    if is_for_children(row.get("title"), row.get("target_raw")):
+        return None  # 어린이·청소년 전용은 계단에 올리지 않는다
     online = bool(row.get("is_online"))
     if online:
         return 1 if row.get("is_free") else None
