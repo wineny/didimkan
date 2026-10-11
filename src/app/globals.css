@@ -401,6 +401,11 @@ html[data-big] .v4 .info { padding-left: 0.6923rem; padding-right: 0.6923rem; }
 /* 문자 미리보기: 말풍선 = 카드 면 + 선, 날짜 줄 15px */
 .v4 .bub { background: var(--card); border: 1px solid var(--line); box-shadow: 0 0.8235rem 1.7647rem -1.2941rem var(--shadow-card); }
 .v4 .when { font-size: 0.8824rem; margin-top: 0.4706rem; }
+/* v6: 편지봉투 + 보내는 시각을 문자 칸 왼쪽 끝에 맞춘다 */
+.v4 .m-smsbody .when { align-self: flex-start; display: flex; align-items: center; gap: 0.3529rem; }
+.v4 .m-smsbody .when img { flex: none; width: 1.6rem; height: auto; }
+.v4 .m-smsbar .ava { overflow: hidden; }
+.v4 .m-smsbar .ava img { width: 100%; height: 100%; object-fit: cover; }
 .v4 .m-smsbar .ava { background: var(--terra-soft); }
 
 /* 개인정보: 카드 하나 안의 행, 라벨 테라코타 15px · 내용 17px */

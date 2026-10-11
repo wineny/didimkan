@@ -28,11 +28,8 @@ export default async function AlertSmsPage({ params }: PageProps<"/alert/[id]/sm
         </svg>
       </Link>
       <span className="ava" aria-hidden="true">
-        <svg width="20" height="20" viewBox="0 0 39 39">
-          <rect x="0" y="26" width="13" height="13" fill="var(--logo-ink)" />
-          <rect x="13" y="13" width="13" height="26" fill="var(--logo-ink)" />
-          <rect x="26" y="0" width="13" height="13" fill="var(--accent)" />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/char/h-face.webp" alt="" />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="t">{C.title}</div>
@@ -43,7 +40,7 @@ export default async function AlertSmsPage({ params }: PageProps<"/alert/[id]/sm
 
   if (!course || !a.applyDate) {
     return (
-      <Shell>
+      <Shell foot="실제 접수는 기관에 확인하세요 · 그림은 AI 생성 시범 이미지">
         {header}
         <main className="m-main" aria-label={C.title}>
           <div className="body">
@@ -83,17 +80,19 @@ export default async function AlertSmsPage({ params }: PageProps<"/alert/[id]/sm
   });
 
   return (
-    <Shell>
+    <Shell foot="실제 접수는 기관에 확인하세요 · 그림은 AI 생성 시범 이미지">
       {header}
       <main className="m-main" aria-label={C.title}>
         <div className="body m-smsbody">
-          <p className="meta" style={{ margin: "0.5882rem 0 0", textAlign: "center" }}>
+          <p className="meta" style={{ margin: "0.5882rem 0 0" }}>
             {applyWhen(a.applyDate, course.source)}
             {a.isEstimate ? ` · ${M2_COPY.alert.applyEstimate}` : ""}
           </p>
           {items.map((it) => (
-            <div key={it.kind} style={{ display: "flex", flexDirection: "column", gap: "0.5882rem" }}>
+            <div key={it.kind} style={{ display: "flex", flexDirection: "column", gap: "0.3529rem" }}>
               <div className="when" data-sms-when={it.kind}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/char/i-letter.webp" alt="" aria-hidden="true" />
                 {it.label}
               </div>
               <div className="bub" data-sms={it.kind}>
