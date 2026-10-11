@@ -40,6 +40,10 @@ describe("tiles", () => {
     expect(period(74)).toBe("11주 · 주 2회"); // 10.57 → 11
     expect(period(30)).toBe("4주 · 주 2회");
   });
+  it("상시 운영(날짜 없음, 요일만)은 주 수를 지어내지 않고 주 N회만", () => {
+    const t = tiles({ ...course, termDays: null, sessionsPerWeek: 2 });
+    expect(t.find((x) => x.key === "period")?.value).toBe("주 2회");
+  });
   it("정보가 없으면 확인 안 됨", () => {
     const t = tiles({ ...course, feeWon: null, capacity: null, selectionMethod: null, termDays: null, sessionsPerWeek: null });
     expect(t.filter((x) => x.value === "확인 안 됨").map((x) => x.key)).toEqual(["fee", "capacity", "selection", "period"]);

@@ -7,8 +7,11 @@
   「기타」는 뒤에 「등·교양·과정·강좌·프로그램·활동」이 오면 악기로 보지 않는다. 「그림책」은 미술 아님.
 - 설명 기반 신호(basic 의 설명 부분·welcome·no_supplies)는 description 이 None 이거나
   source 가 gangnam·seoul_* 이면 만들지 않는다. 제목 기반 basic 은 허용.
-- stair_reason 은 docs/contract.md §9 표 그대로: 1단 고정 문장 / 2단 소규모 > 1회 > 기초 / 3단 「N주 동안」.
-  N = term_days/7 반올림(0.5 는 올림).
+- 3단은 term_days ≥ 28 또는 「시작·종료일이 둘 다 없음」(기간 없는 정기 운영) + weekday_bits > 0. 한쪽 날짜만
+  있거나 거꾸로인 행은 NULL. 날짜 없는 쪽은 제목이 NON_COURSE_RE(대여·독서실·자유이용·헬스·개인레슨 등
+  시설 이용)에 걸리면 NULL — 날짜가 있던 행은 기간 조건이 이 구실을 해 왔으므로 그쪽은 손대지 않는다.
+- stair_reason 은 docs/contract.md §9 표 그대로: 1단 고정 문장 / 2단 소규모 > 1회 > 기초 / 3단 「N주 동안」,
+  날짜 없는 정기 운영은 「매주 {요일}」. N = term_days/7 반올림(0.5 는 올림).
 - apply_status 는 contract §10 판정 순서 1~6·8·9(7번 예측은 조회 쪽 몫). src/lib/status.ts 와 같은 결과.
 - 예측: 접수시작일(today 이하) 중복 제거 → 7일 이내 이웃은 한 번의 오픈으로 묶음(build_patterns.py 방식)
   → 묶음 수 ≥ 3 일 때만 간격 중앙값으로 예측. 예상일이 today 보다 과거면 주기를 더한다(today 당일은 유지).
@@ -183,10 +186,24 @@ def stair(row: dict) -> int | None:
         return None
     if _has_basic(row) or _is_once(row):
         return 2
+    if (row.get("weekday_bits") or 0) <= 0:
+        return None
+    if _no_dates(row):
+        # 기간 없는 정기 운영(동주민센터 프로그램 등): 날짜 없이 요일만 있으면 정기 모임으로 본다.
+        # 단 시설 이용권·대여·개인레슨은 「같은 시간에 만나는」 모임이 아니므로 뺀다.
+        return None if NON_COURSE_RE.search(row.get("title") or "") else 3
     td = term_days(row.get("start_date"), row.get("end_date"))
-    if td is not None and td >= 28 and (row.get("weekday_bits") or 0) > 0:
+    if td is not None and td >= 28:
         return 3
     return None
+
+
+NON_COURSE_RE = re.compile(r"대여|독서실|자유이용|자유수영|자율|개인레슨|헬스|락커|사물함")
+
+
+def _no_dates(row: dict) -> bool:
+    """시작·종료일이 둘 다 없음. 한쪽만 있거나 거꾸로인 행은 해당 없음(term_days None 과 다르다)."""
+    return not row.get("start_date") and not row.get("end_date")
 
 
 def _weekday_text(row: dict) -> str:
@@ -219,6 +236,8 @@ def stair_reason(row: dict, stair: int | None) -> str | None:
             return "한 번으로 끝나 부담이 적어요"
         return _basic_reason(row)
     if stair == 3:
+        if _no_dates(row):
+            return f"매주 {_weekday_text(row)} 같은 시간에 만나요"
         td = term_days(row.get("start_date"), row.get("end_date"))
         if td is None:
             return None

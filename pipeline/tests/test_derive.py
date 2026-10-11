@@ -143,6 +143,51 @@ def test_stair_3_needs_weekdays():
     assert stair(row) is None
 
 
+def test_stair_3_no_dates_weekly():
+    # 상시 운영: 날짜가 둘 다 없고 요일만 있으면 3단(동주민센터 프로그램 꼴)
+    assert stair(course(title="서예", fee_won=10000, weekday_bits=0b101)) == 3
+    assert stair(course(title="서예", is_free=1, weekday_bits=1)) == 3
+
+
+def test_stair_3_no_dates_still_needs_weekdays_and_fee():
+    assert stair(course(title="서예", is_free=1, weekday_bits=0)) is None
+    assert stair(course(title="서예", is_free=1, weekday_bits=None)) is None
+    assert stair(course(title="서예", fee_won=None, is_free=0, weekday_bits=1)) is None
+    assert stair(course(title="서예", fee_won=60000, weekday_bits=1)) is None
+
+
+def test_stair_no_dates_other_rules_still_first():
+    # 2단 우선, 온라인은 1단 규칙, 어린이 전용은 NULL — 날짜 없는 행에서도 그대로
+    assert stair(course(title="기초 서예", is_free=1, weekday_bits=1)) == 2
+    assert stair(course(title="서예", is_online=1, is_free=1, weekday_bits=1)) == 1
+    assert stair(course(title="서예", is_online=1, fee_won=10000, weekday_bits=1)) is None
+    assert stair(course(title="어린이 서예", is_free=1, weekday_bits=1)) is None
+
+
+@pytest.mark.parametrize("title", [
+    "헬스월수금", "자유수영11시_매일", "자율탁구4", "★탁구개인레슨2", "독서실", "자치회관 공유물품 대여",
+    "새벽배드민턴(자유이용)", "락커 월이용",
+])
+def test_stair_3_no_dates_excludes_facility_use(title: str):
+    # 시설 이용권·대여·개인레슨은 「같은 시간에 만나는」 모임이 아니다
+    assert stair(course(title=title, is_free=1, weekday_bits=0b11111)) is None
+
+
+def test_stair_3_dated_rows_not_affected_by_facility_words():
+    # 날짜가 있던 행은 기간 조건이 걸러 왔으므로 규칙을 바꾸지 않는다(후속 과제)
+    row = course(title="헬스월수금", is_free=1, start_date="2026-10-01", end_date="2026-12-31",
+                 weekday_bits=0b10101)
+    assert stair(row) == 3
+
+
+def test_stair_3_one_sided_or_reversed_dates_is_null():
+    assert stair(course(title="서예", is_free=1, start_date="2026-10-01", weekday_bits=1)) is None
+    assert stair(course(title="서예", is_free=1, end_date="2026-12-31", weekday_bits=1)) is None
+    reversed_ = course(title="서예", is_free=1, start_date="2026-12-31", end_date="2026-10-01",
+                       weekday_bits=1)
+    assert stair(reversed_) is None
+
+
 # ---------- 계단 이유 ----------
 
 def test_stair_reason_texts():
@@ -160,6 +205,10 @@ def test_stair_reason_texts():
     assert stair_reason(reg, 3) == "13주 동안 월·수 같은 시간에 만나요"
     four = course(start_date="2026-10-01", end_date="2026-10-28", weekday_bits=0b0010001)
     assert stair_reason(four, 3) == "4주 동안 월·금 같은 시간에 만나요"
+    # 3단 상시 운영: 날짜가 없으니 주 수를 지어내지 않고 「매주」
+    always = course(weekdays="화,목", weekday_bits=0b1010)
+    assert stair_reason(always, 3) == "매주 화·목 같은 시간에 만나요"
+    assert stair_reason(course(start_date="2026-10-01", weekday_bits=1), 3) is None
     assert stair_reason(course(), None) is None
 
 

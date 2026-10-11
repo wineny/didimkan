@@ -130,7 +130,9 @@ export function tiles(c: TileCourse): Tile[] {
       ? { key: "period", label: "기간", value: `${weeks}주 · 주 ${c.sessionsPerWeek}회`, tone: "neutral" }
       : weeks
         ? { key: "period", label: "기간", value: `${weeks}주`, tone: "neutral" }
-        : { key: "period", label: "기간", value: UNKNOWN, tone: "muted" };
+        : c.sessionsPerWeek
+          ? { key: "period", label: "기간", value: `주 ${c.sessionsPerWeek}회`, tone: "neutral" } // contract §12 ⑤: 날짜 없이 요일만(기간 없는 정기 운영)
+          : { key: "period", label: "기간", value: UNKNOWN, tone: "muted" };
   const place: Tile =
     c.isOnline || has("online")
       ? { key: "place", label: "장소", value: "집에서", tone: "good" }
