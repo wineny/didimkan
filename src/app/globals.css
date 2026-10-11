@@ -371,7 +371,7 @@ html[data-big] .v4 .info { padding-left: 0.6923rem; padding-right: 0.6923rem; }
 .v4 .m-nw { white-space: nowrap; }
 
 /* 등록 완료: 접수 날짜 요약 = 숲색 강조 카드 (홈 대표 강좌와 같은 면) */
-.v4 .m-hero { flex: none; padding: 1.4118rem 1.2941rem 0.2353rem; border-radius: 1.2941rem; background: var(--accent); color: var(--white); overflow-wrap: anywhere; }
+.v4 .m-hero { position: relative; flex: none; padding: 1.4118rem 1.2941rem 0.2353rem; border-radius: 1.2941rem; background: var(--accent); color: var(--white); overflow-wrap: anywhere; }
 .v4 .m-hero-t { font: 700 1rem/1.5 Pretendard, sans-serif; }
 .v4 .m-hero-chip { display: inline-flex; align-items: center; min-height: 1.8824rem; margin-top: 0.4706rem; padding: 0.1176rem 0.7059rem; border-radius: 58.8235rem; background: var(--peach); color: #4A1D0B; font: 700 0.8824rem/1.2 Pretendard, sans-serif; }
 .v4 .m-hero .m-big { margin-top: 0.7059rem; font: 800 1.4118rem/1.25 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--white); }
@@ -417,7 +417,9 @@ html[data-big] .v4 .opts > button.opt { gap: 0.4615rem; padding: 0.5385rem 0.615
 html[data-big] .v4 .opts:has(> button.opt) { gap: 0.4615rem; }
 html[data-big] .v4 .opt-pot { display: none; }
 html[data-big] .v4 .hello-img, html[data-big] .v4 .m-hello-img { width: 2.6rem; margin: 0; }
-html[data-big] .v4 .m-hello { margin-top: 0; }
+/* 알림 카드 왼쪽 가장자리에 걸린 종(장식) */
+.v4 .m-hero-bell { position: absolute; left: -0.8rem; top: 0.9rem; width: 2.3rem; height: auto; transform: scaleX(-1) rotate(-20deg); pointer-events: none; }
+html[data-big] .v4 .m-hero-bell { display: none; }
 html[data-big] .v4 .opts.p-list > button.li { min-height: 2.4616rem; }
 html[data-big] .v4 .m-pick .m-pick-line, html[data-big] .v4 .m-card .meta { font-size: 0.7692rem; }
 html[data-big] .v4 .m-sent, html[data-big] .v4 .m-resend { font-size: 0.8462rem; }

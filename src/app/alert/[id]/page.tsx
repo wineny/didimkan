@@ -34,14 +34,22 @@ export default async function AlertPage({ params }: PageProps<"/alert/[id]">) {
   const where = course && (orgName(course) || course.phone) ? { org: orgName(course), phone: course.phone } : null;
 
   return (
-    <Shell>
+    <Shell foot="실제 접수는 기관에 확인하세요 · 그림은 AI 생성 시범 이미지">
       <main className="m-main" aria-label={C.h1}>
         <div className="body">
-          <h1 className="h1 gap-h1">{C.h1}</h1>
-          <p className="sub">{C.sub}</p>
+          <div className="m-hello">
+            <div className="m-hello-tx">
+              <h1 className="h1">{C.h1}</h1>
+              <p className="sub">{C.sub}</p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="m-hello-img" src="/char/h-joy.webp" alt="" aria-hidden="true" />
+          </div>
 
           {course ? (
             <div className="m-hero gap-24">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="m-hero-bell" src="/char/i-bell.webp" alt="" aria-hidden="true" />
               <div className="m-hero-t">
                 {course.title}{" "}
                 <span className="m-hero-chip">{a.applyDate ? (a.isEstimate ? C.applyEstimate : C.applyConfirmed) : C.applyUnknown}</span>
