@@ -1,6 +1,8 @@
-export type Choice = { value: string; title: string; sub?: string; /** 카드 왼쪽 3막대 계단 그림에서 칠할 칸(장식) */ stair?: 1 | 2 | 3 };
+export type Choice = { value: string; title: string; sub?: string; /** 카드 왼쪽 화분 그림(1 씨앗 · 2 새싹 · 3 꽃, 장식) */ stair?: 1 | 2 | 3 };
 
-/** 종이 카드 선택지: (계단 그림) + 굵은 한 줄 + 회색 한 줄 + 동그라미. dataAttr 로 e2e 셀렉터 속성 이름을 정한다. */
+const POT = { 1: "seed", 2: "sprout", 3: "flower" } as const;
+
+/** 종이 카드 선택지: (화분 그림) + 굵은 한 줄 + 회색 한 줄 + 동그라미. dataAttr 로 e2e 셀렉터 속성 이름을 정한다. */
 export default function ChoiceList({
   items,
   selected,
@@ -28,11 +30,8 @@ export default function ChoiceList({
             onClick={() => onSelect(it.value)}
           >
             {it.stair ? (
-              <span className={`opt-st n${it.stair}`} aria-hidden="true">
-                <i />
-                <i />
-                <i />
-              </span>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="opt-pot" src={`/char/i-pot-${POT[it.stair]}.webp`} alt="" aria-hidden="true" />
             ) : null}
             <span className="opt-tx">
               <span className="o1">{it.title}</span>

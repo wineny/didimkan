@@ -340,12 +340,10 @@ html[data-big] .v4 .info { padding-left: 0.6923rem; padding-right: 0.6923rem; }
 .v4 .opts > button.opt { align-items: center; gap: 0.8824rem; padding: 1.0588rem 1.0588rem 1.0588rem 1.1765rem; border: 1px solid var(--line); border-radius: 1.2941rem; background: var(--card); box-shadow: 0 0.8235rem 1.7647rem -1.2941rem var(--shadow-card); }
 .v4 .opts > button.opt[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-tint); }
 .v4 .opt .opt-tx { flex: 1; min-width: 0; }
-.v4 .opt-st { flex: none; display: flex; align-items: flex-end; gap: 0.1765rem; width: 2.1176rem; height: 1.6471rem; padding-bottom: 0.0588rem; border-bottom: 2px solid var(--text-2); }
-.v4 .opt-st i { flex: 1; border-radius: 0.1176rem 0.1176rem 0 0; background: var(--line-strong); }
-.v4 .opt-st i:nth-child(1) { height: 0.5294rem; }
-.v4 .opt-st i:nth-child(2) { height: 1rem; }
-.v4 .opt-st i:nth-child(3) { height: 1.4706rem; }
-.v4 .opt-st.n1 i:nth-child(1), .v4 .opt-st.n2 i:nth-child(2), .v4 .opt-st.n3 i:nth-child(3) { background: var(--terra); }
+/* v6 고슴도치(2026-10-11): 선택지 화분 그림 · 첫 화면 인사. 장식이라 크게 보기에선 줄이거나 숨긴다 */
+.v4 .opt-pot { flex: none; width: 3.1rem; height: 3.1rem; object-fit: contain; }
+.v4 .hello { display: flex; align-items: flex-end; justify-content: space-between; gap: 0.4706rem; }
+.v4 .hello-img { flex: none; width: 5.4rem; height: auto; margin: -0.2353rem -0.3529rem -0.4706rem 0; }
 .v4 .opts > button.opt .radio { background: var(--card); }
 .v4 .note { font-size: 1rem; }
 
@@ -414,7 +412,8 @@ html[data-big] .v4 .kv { padding: 0.5385rem 0; }
 html[data-big] .v4 .kv .k, html[data-big] .v4 .sec, html[data-big] .v4 .m-kick { font-size: 0.7692rem; letter-spacing: 0.04em; }
 html[data-big] .v4 .opts > button.opt { gap: 0.4615rem; padding: 0.5385rem 0.6154rem; border-radius: 0.8462rem; }
 html[data-big] .v4 .opts:has(> button.opt) { gap: 0.4615rem; }
-html[data-big] .v4 .opt-st { display: none; }
+html[data-big] .v4 .opt-pot { display: none; }
+html[data-big] .v4 .hello-img { width: 2.6rem; margin: 0; }
 html[data-big] .v4 .opts.p-list > button.li { min-height: 2.4616rem; }
 html[data-big] .v4 .m-pick .m-pick-line, html[data-big] .v4 .m-card .meta { font-size: 0.7692rem; }
 html[data-big] .v4 .m-sent, html[data-big] .v4 .m-resend { font-size: 0.8462rem; }

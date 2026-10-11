@@ -48,7 +48,11 @@ export default function StairChoice() {
   return (
     <>
       <main className="body">
-        <h1 className="h1 gap-h1">요즘 어떠세요?</h1>
+        <div className="hello gap-h1">
+          <h1 className="h1">요즘 어떠세요?</h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="hello-img" src="/char/h-hello.webp" alt="" aria-hidden="true" />
+        </div>
         <p className="sub gap-sub">
           배우고 싶은 게 없어도 괜찮아요.
           <br />
