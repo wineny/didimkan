@@ -92,9 +92,7 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
   const pill = st.isEstimate ? c.ddayLabel.split(" · ")[0] : c.ddayLabel;
 
   return (
-    <Shell
-      foot={`실제 접수는 기관에 확인하세요${photo ? " · 사진은 AI 생성 시범 이미지" : ""}`}
-    >
+    <Shell>
       <main className="c-main">
         <div className="body">
           <Link href={backHref(sp)} className="c-back" aria-label="목록으로 돌아가기">
@@ -118,9 +116,12 @@ export default async function CoursePage({ params, searchParams }: PageProps<"/c
 
           <InfoGrid cells={cells} />
 
-          <section className="c-sect" aria-labelledby="c-h-signal">
+          <section className="c-sect c-signal" aria-labelledby="c-h-signal">
             <h2 id="c-h-signal">설명에서 찾은 문턱 신호</h2>
             <p>{quote ? `“${quote}”` : NO_SIGNAL}</p>
+            {/* 신호를 가리키는 안내 고슴도치(장식) */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="c-guide" src="/char/h-guide.webp" alt="" aria-hidden="true" />
           </section>
 
           <section className="c-sect c-apply" aria-labelledby="c-h-apply">

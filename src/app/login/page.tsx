@@ -45,7 +45,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   }
 
   return (
-    <Shell foot="실제 접수는 기관에 확인하세요 · 그림은 AI 생성 시범 이미지">
+    <Shell>
       <main className="m-main" aria-label={M2_COPY.login.h1}>
         <LoginForm course={course} skipHref={skipHref} next={next} loggedIn={loggedIn} />
       </main>

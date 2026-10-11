@@ -20,7 +20,7 @@ export default async function MePage() {
   const now = getNow();
 
   return (
-    <Shell foot="실제 접수는 기관에 확인하세요 · 그림은 AI 생성 시범 이미지">
+    <Shell>
       <main className="m-main" aria-label={C.h1}>
         <div className="body">
           <div className="m-hello">

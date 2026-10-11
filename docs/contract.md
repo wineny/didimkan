@@ -130,7 +130,7 @@ def make_id(title, institution, start_date, start_time, venue) -> str:
 | — | NULL | 맞는 키워드 없음 | 사진 없이 옅은 면(`--surface`) |
 
 - 값의 가운뎃점은 `·`(U+00B7) 한 글자, 「몸 풀기」 는 띄어쓰기 한 칸. DB CHECK 가 6개 값 외에는 막는다.
-- 사진은 모두 AI 생성 시범 이미지. 사진을 쓰는 화면에 「AI 생성 시범 이미지」 표기.
+- 사진·고슴도치 그림은 모두 AI 생성 시범 이미지. 화면 표기는 하지 않는다(2026-10-11 사용자 결정).
 
 ## 8. 문턱 신호 `signals`
 

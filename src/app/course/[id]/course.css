@@ -29,6 +29,9 @@
 .v4 .c-sect p { margin: 0.5882rem 0 0; font: 400 1rem/1.65 Pretendard, sans-serif; color: var(--text); }
 .v4 .c-sect .c-big { font: 800 1.1765rem/1.4 Pretendard, sans-serif; letter-spacing: -0.03em; color: var(--accent); font-variant-numeric: tabular-nums; }
 .v4 .c-sect .c-note { color: var(--text-2); }
+/* v6: 문턱 신호 칸 오른쪽 안내 고슴도치(왼쪽을 가리키게 뒤집음) */
+.v4 .c-signal { position: relative; min-height: 6.4rem; padding-right: 5rem; }
+.v4 .c-guide { position: absolute; right: -0.2rem; top: 0.7rem; width: 4.8rem; height: auto; transform: scaleX(-1); pointer-events: none; }
 .v4 .c-sect .c-bigphone { margin-top: 0.2353rem; font: 800 1.6471rem/1.3 Pretendard, sans-serif; letter-spacing: -0.02em; }
 .v4 .c-tel { display: inline-flex; align-items: center; min-height: 3.0588rem; margin-top: 0.3529rem; font: 800 1.1765rem/1 Pretendard, sans-serif; color: var(--accent); text-decoration: none; border-bottom: 2px solid var(--terra); font-variant-numeric: tabular-nums; }
 
@@ -61,6 +64,8 @@ html[data-big] .v4 .c-cell .v { margin-top: 0.2308rem; font-size: 1.1538rem; }
 html[data-big] .v4 .c-sect { margin-top: 1.0769rem; padding-top: 0.9231rem; }
 html[data-big] .v4 .c-sect + .c-sect { margin-top: 0.9231rem; }
 html[data-big] .v4 .c-sect h2 { font-size: 0.8462rem; }
+html[data-big] .v4 .c-guide { display: none; }
+html[data-big] .v4 .c-signal { min-height: 0; padding-right: 0.2353rem; }
 html[data-big] .v4 .c-sect p { margin-top: 0.3846rem; font-size: 0.9231rem; line-height: 1.5; }
 html[data-big] .v4 .c-sect .c-big { font-size: 1.3077rem; line-height: 1.3; }
 html[data-big] .v4 .c-sect .c-bigphone { font-size: 1.6923rem; }

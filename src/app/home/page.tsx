@@ -31,12 +31,10 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const rest = nowItems.slice(1);
   const nextAlt = !!hero && !!nextItems[0] && hero.category === "어학" && nextItems[0].category === "어학";
   const nextPhotos = nextItems.map((v, i) => photoOf(v.category, i === 0 && nextAlt));
-  // 다음 칸 사진, 또는 크게 보기 카드의 작은 사진이 하나라도 있으면 아래 줄에 AI 이미지 문구를 단다
-  const hasPhoto = [...nowItems, ...nextItems].some((v) => photoOf(v.category));
   const showNow = nowItems.length === 0 || rest.length > 0;
 
   return (
-    <Shell foot={`실제 접수는 기관에 확인하세요${hasPhoto ? " · 사진은 AI 생성 시범 이미지" : ""}`}>
+    <Shell>
       <main className="body home">
         {hero ? <HeroCourse v={hero} /> : null}
 

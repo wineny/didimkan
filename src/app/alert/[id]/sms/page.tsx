@@ -40,7 +40,7 @@ export default async function AlertSmsPage({ params }: PageProps<"/alert/[id]/sm
 
   if (!course || !a.applyDate) {
     return (
-      <Shell foot="실제 접수는 기관에 확인하세요 · 그림은 AI 생성 시범 이미지">
+      <Shell>
         {header}
         <main className="m-main" aria-label={C.title}>
           <div className="body">
@@ -80,7 +80,7 @@ export default async function AlertSmsPage({ params }: PageProps<"/alert/[id]/sm
   });
 
   return (
-    <Shell foot="실제 접수는 기관에 확인하세요 · 그림은 AI 생성 시범 이미지">
+    <Shell>
       {header}
       <main className="m-main" aria-label={C.title}>
         <div className="body m-smsbody">
