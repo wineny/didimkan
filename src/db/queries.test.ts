@@ -21,13 +21,17 @@ type Row = {
   dong: string;
   applyStart: string | null;
   applyEnd: string | null;
+  endDate?: string;
+  institution?: string;
+  lat?: number;
+  lng?: number;
 };
 
 function insert(r: Row, stair = 2): InStatement {
   return {
-    sql: `INSERT INTO courses (id, source, collected_at, title, sido, sigungu, dong, apply_start, apply_end, stair)
-          VALUES (?, 'std', '2026-10-01', ?, '서울특별시', ?, ?, ?, ?, ?)`,
-    args: [r.id, `강좌 ${r.id}`, r.sigungu, r.dong, r.applyStart, r.applyEnd, stair],
+    sql: `INSERT INTO courses (id, source, collected_at, title, sido, sigungu, dong, apply_start, apply_end, end_date, institution, lat, lng, stair)
+          VALUES (?, 'std', '2026-10-01', ?, '서울특별시', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [r.id, `강좌 ${r.id}`, r.sigungu, r.dong, r.applyStart, r.applyEnd, r.endDate ?? null, r.institution ?? null, r.lat ?? null, r.lng ?? null, stair],
   };
 }
 
@@ -49,7 +53,19 @@ beforeAll(async () => {
     rows.push({ id: `z2${pad(i)}`, sigungu: "강남구", dong: "도곡1동", applyStart: "2026-10-01", applyEnd: addDays(TODAY, 1 + i) });
   for (let i = 0; i < 20; i++)
     rows.push({ id: `z0${pad(i)}`, sigungu: "강남구", dong: "도곡1동", applyStart: "2026-09-01", applyEnd: "2026-09-10" });
+  // 거리: 강남구인데 동을 모르는(구청 자리, 도곡1동에서 3km 넘음) 접수일 모름 650행(id 가 앞섬) vs
+  // 서초구지만 실제 좌표가 도곡1동 0.3km 인 5행(id 가 뒤). 600 상한을 이름 순위로 자르면 서초 5행이 빠진다.
+  for (let i = 0; i < 650; i++)
+    rows.push({ id: `c${pad(i)}`, sigungu: "강남구", dong: "없는동", applyStart: null, applyEnd: null });
+  for (let i = 0; i < 5; i++)
+    rows.push({ id: `zz${i}`, sigungu: "서초구", dong: "반포1동", applyStart: null, applyEnd: null, lat: 37.488305 + 0.3 / 111.2, lng: 127.038969 });
+  // 예측 접수 예정: 시작일 없고 강좌 종료일은 지났지만 기관 예측일이 미래(contract §10 7번) → 마감으로 잘리면 안 된다.
+  rows.push({ id: "zp0", sigungu: "강남구", dong: "도곡1동", applyStart: null, applyEnd: null, endDate: "2026-09-30", institution: "예측기관" });
   await client.batch(rows.map((r) => insert(r)), "write");
+  await client.execute({
+    sql: "INSERT INTO enrollment_patterns (institution, sigungu, next_open_estimate, basis_count) VALUES ('예측기관', '강남구', ?, 3)",
+    args: [addDays(TODAY, 20)],
+  });
   // 1단(온라인): 지역을 보지 않는다. 마감 1 + 접수 중 1.
   await client.batch([
     insert({ id: "o1", sigungu: "서초구", dong: "x", applyStart: "2026-09-01", applyEnd: "2026-09-10" }, 1),
@@ -85,13 +101,24 @@ describe("listCourses 후보 상한", () => {
     expect(out[0].applyEnd).toBe("2026-10-11");
   });
 
-  it("고른 동의 마감 강좌도 숨기지 않고, 접수일 모름 뒤에 온다", async () => {
+  it("600 상한 안에서도 실제로 가까운 이웃 구 강좌와 예측 접수 예정 강좌가 빠지지 않는다", async () => {
     const out = await listCourses({ stair: 2, area: AREA, today: TODAY, limit: 100 });
-    const statuses = out.map((c) => c.status.status);
-    expect(statuses.slice(0, 30).every((s) => s === "open")).toBe(true);
-    expect(statuses.slice(30, 80).every((s) => s === "unknown")).toBe(true);
-    expect(statuses.slice(80, 100).every((s) => s === "closed")).toBe(true);
-    expect(out.slice(0, 100).every((c) => c.dong === "도곡1동")).toBe(true);
+    const ids = out.map((c) => c.id);
+    // 1km 미만: 도곡1동 접수 중 30 → 예측 접수 예정 1 → 접수일 모름(도곡1동 50, 0km → 서초 좌표 5, 0.3km)
+    expect(ids.slice(0, 30).every((id) => id.startsWith("z2"))).toBe(true);
+    expect(ids[30]).toBe("zp0");
+    expect(out[30].status.status).toBe("before");
+    expect(ids.slice(31, 81).every((id) => id.startsWith("z1"))).toBe(true);
+    expect(ids.slice(81, 86)).toEqual(["zz0", "zz1", "zz2", "zz3", "zz4"]);
+  });
+
+  it("마감은 숨기지 않고 맨 뒤, 그 앞은 거리 구간 순", async () => {
+    const out = await listCourses({ stair: 2, area: AREA, today: TODAY, limit: 2000 });
+    expect(out).toHaveLength(1456);
+    // 1~3km: 서초구(구청 자리 0.8km 지만 구만 알아 1km 로 침) 접수 중 700 → 3~5km: 강남구청 자리 650 → 마감 20
+    expect(out.slice(86, 786).every((c) => c.sigungu === "서초구" && c.status.status === "open")).toBe(true);
+    expect(out.slice(786, 1436).every((c) => c.dong === "없는동")).toBe(true);
+    expect(out.slice(1436).every((c) => c.status.status === "closed")).toBe(true);
   });
 });
 

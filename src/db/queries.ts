@@ -1,6 +1,6 @@
 // 조회 함수. 계약: docs/contract.md §10(접수 상태·정렬), R7·R9.
 // 지역은 걸러내는 조건이 아니라 정렬 기준이다. DB 에서는 계단으로만 거르고,
-// 후보 상한 안에 「가까운」 행이 들어오도록 SQL ORDER BY 에서 지역 일치·마감·접수 중을 먼저 본다.
+// 후보 상한 안에 「가까운」 행이 들어오도록 SQL ORDER BY 에서 마감 여부·거리 구간·접수 중을 먼저 본다.
 // 최종 순서는 메모리 sortCourses 가 정한다.
 import { and, asc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { db } from "./client";
@@ -13,6 +13,7 @@ import {
   type Stair,
 } from "./schema";
 import { ddayLabel } from "@/lib/dday";
+import { areaPoint, bandTable, DISTANCE_BANDS_KM, FAR_BAND, UNKNOWN_BAND } from "@/lib/geo";
 import { sortCourses, type Area } from "@/lib/sort";
 import { applyStatus, findPattern, type StatusResult } from "@/lib/status";
 import { getToday } from "@/lib/today";
@@ -53,29 +54,53 @@ export function attach(
   return { ...row, pattern, status, ddayLabel: ddayLabel(status, today) };
 }
 
+const KM_PER_DEG = 111.195; // 지구 반지름 6371km 기준 위도 1도
+
 /**
- * 지역 일치 순위: 동 0 → 구 1 → 시도 2 → 나머지 3. 1단(온라인)·지역 없음은 순위가 없으니 null
+ * 후보 거리 구간(sortCourses 와 같은 구간 번호). 1단(온라인)·지역 없음은 null
  * (상수 `ORDER BY 0` 은 SQLite 가 열 번호로 읽어 오류가 나므로 아예 빼야 한다).
+ * 좌표가 있으면 평면 근사 거리(20km 안 오차 0.5% 미만), 없으면 동 → 구 → 시도 이름별 구간표.
+ * 표에 없는 동(20km 이상)은 구 구간으로 넘어가 실제보다 가깝게 잡힐 수 있다 — 후보가 늘 뿐 빠지지는 않는다.
  */
-function areaRankSql(stair: Stair, area: Area): SQL | null {
-  if (stair === 1 || !area.sido) return null;
-  const sido = eq(courses.sido, area.sido);
-  const gu = area.sigungu ? and(sido, eq(courses.sigungu, area.sigungu)) : undefined;
-  const dong = gu && area.dong ? and(gu, eq(courses.dong, area.dong)) : undefined;
-  return sql`CASE${dong ? sql` WHEN ${dong} THEN 0` : sql``}${gu ? sql` WHEN ${gu} THEN 1` : sql``} WHEN ${sido} THEN 2 ELSE 3 END`;
+function bandSql(stair: Stair, area: Area): SQL | null {
+  if (stair === 1) return null;
+  const home = areaPoint(area);
+  if (!home) return null;
+  const kx = KM_PER_DEG * Math.cos((home[0] * Math.PI) / 180);
+  const dLat = sql`((${courses.lat} - ${home[0]}) * ${KM_PER_DEG})`;
+  const dLng = sql`((${courses.lng} - ${home[1]}) * ${kx})`;
+  const d2 = sql`(${dLat} * ${dLat} + ${dLng} * ${dLng})`;
+  const byCoord = DISTANCE_BANDS_KM.map((b, i) => sql` WHEN ${d2} < ${b * b} THEN ${i}`);
+  const t = bandTable(home);
+  const keys = {
+    dong: sql`(${courses.sido} || '|' || ${courses.sigungu} || '|' || ${courses.dong})`,
+    gu: sql`(${courses.sido} || '|' || ${courses.sigungu})`,
+    sido: sql`${courses.sido}`,
+  };
+  const byName = (["dong", "gu", "sido"] as const).flatMap((lvl) =>
+    DISTANCE_BANDS_KM.flatMap((_, i) => {
+      const names = [...t[lvl]].filter(([, b]) => b === i).map(([k]) => sql`${k}`);
+      return names.length ? [sql` WHEN ${keys[lvl]} IN (${sql.join(names, sql`, `)}) THEN ${i}`] : [];
+    }),
+  );
+  return sql`CASE WHEN ${courses.lat} IS NOT NULL AND ${courses.lng} IS NOT NULL THEN (CASE${sql.join(byCoord, sql``)} ELSE ${FAR_BAND} END)${sql.join(byName, sql``)}
+    WHEN ${courses.sido} IS NULL THEN ${UNKNOWN_BAND} ELSE ${FAR_BAND} END`;
 }
 
 /**
  * 마감이면 1(contract §10 3·5·8번): 접수 마감일 지남, 또는 강좌 종료일 지남 ∧ (시작일 없음 ∨ 마감일 없이 시작일 ≤ today).
  * 연중·수시와 날짜가 거꾸로인 행(2번 unknown)은 0. 시작일이 미래면(4번 before) 종료일이 지나도 0.
- * 한계: 시작일 없이 예측(7번 before)이 있는 행도 종료일이 지났으면 여기서는 1 로 뒤에 놓인다
- * (예측은 enrollment_patterns 조인이 필요해 SQL 에서 보지 않음). 최종 상태·순서는 sortCourses 가 정한다.
+ * 시작일이 없고 같은 기관 예측일이 오늘 이후면(7번 before) 종료일이 지나도 0. 기관명만 보고 시군구는 안 본다
+ * (findPattern 보다 넓게 잡아 후보에서 빠지지 않게 한다). 최종 상태·순서는 sortCourses 가 정한다.
  */
 function closedSql(today: string): SQL {
+  const hasEstimate = sql`EXISTS (SELECT 1 FROM ${enrollmentPatterns} WHERE ${enrollmentPatterns.institution} = ${courses.institution} AND ${enrollmentPatterns.nextOpenEstimate} >= ${today})`;
   return sql`CASE WHEN ${courses.isAlwaysOpen} = 1 THEN 0
     WHEN ${courses.applyStart} IS NOT NULL AND ${courses.applyEnd} IS NOT NULL AND ${courses.applyStart} > ${courses.applyEnd} THEN 0
     WHEN ${courses.applyEnd} IS NOT NULL AND ${courses.applyEnd} < ${today} THEN 1
-    WHEN (${courses.applyStart} IS NULL OR (${courses.applyEnd} IS NULL AND ${courses.applyStart} <= ${today}))
+    WHEN ${courses.applyStart} IS NULL AND ${courses.endDate} IS NOT NULL AND ${courses.endDate} < ${today}
+      AND NOT ${hasEstimate} THEN 1
+    WHEN ${courses.applyStart} IS NOT NULL AND ${courses.applyEnd} IS NULL AND ${courses.applyStart} <= ${today}
       AND ${courses.endDate} IS NOT NULL AND ${courses.endDate} < ${today} THEN 1
     ELSE 0 END`;
 }
@@ -99,8 +124,8 @@ export async function listCourses({
     .from(courses)
     .where(eq(courses.stair, stair))
     .orderBy(
-      ...[areaRankSql(stair, area)].filter((x): x is SQL => x !== null),
-      closedSql(today),
+      closedSql(today), // 마감은 맨 뒤(contract §10 0)
+      ...[bandSql(stair, area)].filter((x): x is SQL => x !== null),
       notOpenSql(today),
       sql`${courses.applyEnd} IS NULL`, // 마감일 없음은 뒤로
       asc(courses.applyEnd),

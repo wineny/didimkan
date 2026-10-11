@@ -1,10 +1,12 @@
 import type { Course, EnrollmentPattern, Stair } from "@/db/schema";
+import { areaPoint, band, courseDistanceKm } from "./geo";
 import { applyStatus, findPattern, type ApplyStatus, type StatusCourse } from "./status";
 
 export type Area = { sido?: string; sigungu?: string; dong?: string };
 
 type SortCourse = StatusCourse &
-  Pick<Course, "id" | "institution" | "sido" | "sigungu" | "dong">;
+  Pick<Course, "id" | "institution" | "sido" | "sigungu" | "dong"> &
+  Partial<Pick<Course, "lat" | "lng">>;
 type SortPattern = Pick<
   EnrollmentPattern,
   "institution" | "sigungu" | "nextOpenEstimate" | "basisCount" | "ruleNote"
@@ -16,17 +18,6 @@ export type SortOptions = {
   today: string;
   patterns?: readonly SortPattern[];
 };
-
-/** 지역 일치도: 동 0 > 구 1 > 시도 2 > 나머지 3. 1단(온라인)은 전부 동급. */
-function areaRank(c: SortCourse, area: Area, stair: Stair): number {
-  if (stair === 1) return 0;
-  const sidoOk = !!area.sido && c.sido === area.sido;
-  const guOk = sidoOk && !!area.sigungu && c.sigungu === area.sigungu;
-  if (guOk && area.dong && c.dong === area.dong) return 0;
-  if (guOk) return 1;
-  if (sidoOk) return 2;
-  return 3;
-}
 
 const STATUS_RANK: Record<ApplyStatus, number> = {
   open: 0,
@@ -50,25 +41,35 @@ function dateOrder(status: ApplyStatus, x: string | null, y: string | null): num
   return status === "closed" ? cmp(y, x) : cmp(x, y);
 }
 
-/** docs/contract.md §10 「가까운 순」: 지역 → 상태 → 상태 안 날짜 → id 오름차순. */
+/**
+ * docs/contract.md §10 「가까운 순」: 마감 아님 먼저 → 거리 구간 → 상태 → 상태 안 날짜 → 거리 → id 오름차순.
+ * 마감은 숨기지 않고 맨 뒤에 가까운 순으로 둔다. 1단(온라인)과 동네를 안 고른 경우는 거리를 보지 않는다.
+ */
 export function sortCourses<C extends SortCourse>(
   courses: readonly C[],
   { stair, area, today, patterns }: SortOptions,
 ): C[] {
+  const home = stair === 1 ? null : areaPoint(area);
   const keyed = courses.map((c) => {
     const st = applyStatus(c, today, findPattern(c, patterns));
+    const km = home ? courseDistanceKm(home, c) : 0;
+    const b = band(km);
     return {
       c,
-      a: areaRank(c, area, stair),
+      closed: st.status === "closed" ? 1 : 0,
+      b,
+      km: km ?? 0, // 위치 모름은 이미 맨 끝 구간이라 거리 비교가 의미 없다
       st: st.status,
       d: st.date ?? null,
     };
   });
   keyed.sort(
     (x, y) =>
-      x.a - y.a ||
+      x.closed - y.closed ||
+      x.b - y.b ||
       STATUS_RANK[x.st] - STATUS_RANK[y.st] ||
       dateOrder(x.st, x.d, y.d) ||
+      x.km - y.km ||
       cmp(x.c.id, y.c.id),
   );
   return keyed.map((k) => k.c);
