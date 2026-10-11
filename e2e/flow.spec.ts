@@ -6,7 +6,12 @@ const shot = (n: string) => `e2e/shots/${n}.png`;
 test('① 상태 선택(기본 2단) → 동네 → 홈: 지금 칸 2단, 강좌 카드 1개 이상', async ({ page }) => {
   const ids = loadFixtureIds();
   await page.goto('/');
+  // 첫 방문: 소개 → 시작하기 → 상태 질문. 다시 열면 소개 없이 바로 질문
+  await expect(page.locator('[data-intro-start]')).toBeVisible();
+  await expect(page.locator('[data-choice]').first()).toBeHidden();
+  await page.locator('[data-intro-start]').click();
   await expect(page.locator('[data-choice]')).toHaveCount(3);
+  await expect(page.locator('[data-choice]').first()).toBeVisible();
   await expect(page.locator('[data-choice="2"]')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('[data-big-toggle]').first()).toBeVisible();
   await page.screenshot({ path: shot('01') });
@@ -24,6 +29,7 @@ test('① 상태 선택(기본 2단) → 동네 → 홈: 지금 칸 2단, 강좌
 
 test('② 「집에서」 선택 시 1단, /where 에 「동네는 건너뛰기」, 홈 st=1', async ({ page }) => {
   await page.goto('/');
+  await page.locator('[data-intro-start]').click();
   await page.locator('[data-choice="1"]').click();
   await expect(page.locator('[data-choice="1"]')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('[data-next]').click();

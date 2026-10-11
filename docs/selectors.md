@@ -4,6 +4,7 @@ e2e(`e2e/flow.spec.ts`)가 이 속성으로 화면을 찾는다. 화면 구현�
 
 | 속성 | 위치 | 설명 |
 |---|---|---|
+| `data-intro-start` | `/` | 첫 방문 소개의 「시작하기」. 누르면 `localStorage didim.intro=1` + `html[data-seen]` 이 붙고 상태 질문이 보인다. 고른 단계·동네가 저장돼 있으면 소개 없이 바로 질문 |
 | `data-choice="1|2|3"` | `/` | 상태 선택 3개. 1 = 「아직은 집에서」(1단), 2 = 「한 번 나가 볼 수 있어요」(기본), 3 = 「정기적으로」. 선택된 것은 `aria-pressed="true"` |
 | `data-next` | `/`, `/where` | 다음으로 가는 버튼 |
 | `data-sido="값"`, `data-sigungu="값"` | `/where` | 시도·시군구 선택 버튼. 값은 DB 의 전체 명칭(예 `서울특별시`·`강남구`) |

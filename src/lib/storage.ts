@@ -5,6 +5,7 @@ export const KEYS = {
   stair: "didim.st",
   area: "didim.area",
   big: "didim.big",
+  intro: "didim.intro",
 } as const;
 
 export const DEFAULT_STAIR: Stair = 2;
@@ -25,6 +26,12 @@ function write(key: string, value: string): void {
   } catch {
     /* 저장이 막힌 환경(사생활 보호 모드 등)에서는 조용히 넘어간다 */
   }
+}
+
+/** 첫 방문 소개를 봤다고 적는다. 화면 전환은 html[data-seen] 으로 한다(layout 의 BIG_INIT 참고). */
+export function markIntroSeen(): void {
+  write(KEYS.intro, "1");
+  document.documentElement.dataset.seen = "1";
 }
 
 export function getStair(): Stair {
