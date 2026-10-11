@@ -2,6 +2,7 @@ html { font-size: 17px; }
 html[data-big] { font-size: 26px; }
 /*
  * 디딤칸 토큰 v5-A2 (2026-10-10) — 「다정한 종이 + 지금 글꼴」.
+ * 글자 단계(2026-10-11, 토스 TDS 기준): 화면 제목 22 · 구획 제목 20 · 카드 제목·버튼 17 굵게 · 본문 17 · 보조 15 (px, 1rem=17px).
  * 근거: 프로토타입/v5/a2-paper-sans/ds.css. 종이 바탕 + 숲색 주색 + 테라코타 보조. 변수 이름은 v4 그대로 둔다.
  * 대비(WCAG 2.x, 바탕 #FAF6EF · 카드 #FFFDF9 · 보조 면 #F3ECDF 기준):
  *   text 14.52 · 15.40 · 13.31 / text-2 6.62 · 7.02 · 6.07 / text-3 5.50 · 5.83 · 5.04 (테라코타 옅은 면 4.77)
@@ -48,20 +49,20 @@ body { margin: 0; font-family: Pretendard, -apple-system, "Apple SD Gothic Neo",
 .v4 *{box-sizing:border-box}
 .v4 .top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:0.4706rem;padding:0.8235rem 1.1765rem;border-bottom:1px solid var(--line);background:var(--bg)}
 .v4 .logo{display:flex;align-items:center;gap:0.4706rem}
-.v4 .logo b{font:800 1.6471rem/1 Pretendard,sans-serif;letter-spacing:-0.04em;color:var(--logo-ink)}
+.v4 .logo b{font:800 1.2941rem/1 Pretendard,sans-serif;letter-spacing:-0.04em;color:var(--logo-ink)}
 .v4 .logo b i{font-style:normal;color:var(--terra)}
 .v4 .tbtns{display:flex;gap:0.4706rem}
 .v4 .tbtn{height:2.3529rem;padding:0 0.8235rem;border:0;border-radius:0.5882rem;background:var(--surface);color:var(--text);font:600 1rem/1 Pretendard,sans-serif;white-space:nowrap}
 .v4 .back{width:2.3529rem;height:2.3529rem;display:flex;align-items:center;justify-content:flex-start;margin-left:-0.2353rem}
 .v4 .body{flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding:0 1.1765rem}
-.v4 .h1{margin:0;font:800 1.5294rem/1.3 Pretendard,sans-serif;letter-spacing:-0.04em}
+.v4 .h1{margin:0;font:800 1.2941rem/1.3 Pretendard,sans-serif;letter-spacing:-0.04em}
 .v4 .h2{margin:0;font:800 1.2941rem/1.3 Pretendard,sans-serif;letter-spacing:-0.04em}
 .v4 .sub{margin:0.5882rem 0 0;font:400 1rem/1.5 Pretendard,sans-serif;color:var(--text-2)}
 .v4 .meta{font:400 0.8824rem/1.45 Pretendard,sans-serif;color:var(--text-2)}
 .v4 .kick{font:700 1rem/1.3 Pretendard,sans-serif;color:var(--accent)}
 .v4 .link{font:500 0.9412rem/1.3 Pretendard,sans-serif;color:var(--text-2);text-decoration:underline;text-underline-offset:0.1765rem;white-space:nowrap}
 .v4 .foot{flex:0 0 auto;padding:0.5882rem 1.1765rem 1.0588rem;border-top:1px solid var(--line);background:var(--bg);text-align:center;font:600 0.8824rem/1.45 Pretendard,sans-serif;color:var(--text-2)}
-.v4 .cta{flex:0 0 auto;margin:0.8235rem 1.1765rem 0;height:3.4118rem;border:0;border-radius:0.8235rem;background:var(--accent);color:var(--white);font:700 1.0588rem/1 Pretendard,sans-serif;letter-spacing:-0.02em}
+.v4 .cta{flex:0 0 auto;margin:0.8235rem 1.1765rem 0;height:3.4118rem;border:0;border-radius:0.8235rem;background:var(--accent);color:var(--white);font:700 1rem/1 Pretendard,sans-serif;letter-spacing:-0.02em}
 .v4 .chev{flex:0 0 auto;color:var(--text-3)}
 /* ② 계단 */
 .v4 .stairs{margin-top:1.1765rem;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;gap:0.2353rem;border-bottom:2px solid var(--text)}
@@ -127,7 +128,7 @@ body { margin: 0; font-family: Pretendard, -apple-system, "Apple SD Gothic Neo",
 .v4 .radio{flex:none;width:1.7647rem;height:1.7647rem;border-radius:50%;border:2px solid var(--line-strong);display:flex;align-items:center;justify-content:center}
 .v4 .radio.on{border-color:var(--accent)}
 .v4 .radio.on::after{content:"";width:0.9412rem;height:0.9412rem;border-radius:50%;background:var(--accent)}
-.v4 .o1{font:700 1.1176rem/1.35 Pretendard,sans-serif;letter-spacing:-0.03em}
+.v4 .o1{font:700 1rem/1.35 Pretendard,sans-serif;letter-spacing:-0.03em}
 .v4 .o2{margin-top:0.2353rem;font:400 1rem/1.45 Pretendard,sans-serif;color:var(--text-2)}
 /* ① 선택지 B — 옅은 면 */
 .v4 .tiles{display:flex;flex-direction:column;gap:0.7059rem}
@@ -143,7 +144,7 @@ body { margin: 0; font-family: Pretendard, -apple-system, "Apple SD Gothic Neo",
 .v4 .li .r{margin-left:auto;font:400 0.8824rem/1.3 Pretendard,sans-serif;color:var(--text-2);white-space:nowrap}
 .v4 .ex{font:500 0.8824rem/1 Pretendard,sans-serif;color:var(--text-2)}
 .v4 .opts.tight .opt{padding:0.8235rem 0.1176rem;align-items:center}
-.v4 .sbtn{width:100%;height:3.4118rem;border:1px solid var(--line-strong);border-radius:0.8235rem;background:var(--white);color:var(--text);font:700 1.0588rem/1 Pretendard,sans-serif;display:flex;align-items:center;justify-content:center;gap:0.5882rem}
+.v4 .sbtn{width:100%;height:3.4118rem;border:1px solid var(--line-strong);border-radius:0.8235rem;background:var(--white);color:var(--text);font:700 1rem/1 Pretendard,sans-serif;display:flex;align-items:center;justify-content:center;gap:0.5882rem}
 .v4 .field{height:3.5294rem;border-radius:0.8235rem;background:var(--surface);padding:0 0.9412rem;display:flex;align-items:center;justify-content:space-between;gap:0.4706rem}
 .v4 .otp{display:flex;gap:0.3529rem}
 .v4 .otp span{flex:1;height:3.4118rem;border-radius:0.7059rem;background:var(--surface);display:flex;align-items:center;justify-content:center;font:800 1.4118rem/1 Pretendard,sans-serif}
@@ -194,7 +195,7 @@ body { background: #EDE5D6; }
 .v4 button.opt, .v4 button.li { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left; border-radius: 0; }
 .v4 button.opt { min-height: 3rem; }
 .v4 .opt .o1, .v4 .opt .o2 { display: block; }
-.v4 button.li { min-height: 3.5294rem; padding: 0 0.1176rem; font: 600 1.1176rem/1.35 Pretendard, sans-serif; justify-content: space-between; }
+.v4 button.li { min-height: 3.5294rem; padding: 0 0.1176rem; font: 600 1rem/1.35 Pretendard, sans-serif; justify-content: space-between; }
 .v4 .opts:has(> button.li) { border-top: 1px solid var(--line); }
 .v4 button.opt:focus-visible, .v4 button.li:focus-visible, .v4 .tbtn:focus-visible, .v4 .cta:focus-visible, .v4 .sbtn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .v4 a.cta, .v4 a.sbtn { display: flex; align-items: center; justify-content: center; text-decoration: none; }
@@ -234,7 +235,7 @@ html[data-big] .v4 .radio.on::after { width: 0.6154rem; height: 0.6154rem; }
 .v4 .gap-8 { margin-top: 0.4706rem; }
 .v4 .gap-24 { margin-top: 1.4118rem; }
 .v4 .m-kick { margin: 1.1765rem 0 0; font: 700 0.8824rem/1.3 Pretendard, sans-serif; color: var(--text-2); }
-.v4 .m-courseline { margin-top: 0.3529rem; font: 800 1.1765rem/1.3 Pretendard, sans-serif; letter-spacing: -0.04em; }
+.v4 .m-courseline { margin-top: 0.3529rem; font: 800 1.0588rem/1.3 Pretendard, sans-serif; letter-spacing: -0.04em; }
 /* 입력칸 */
 .v4 input.field { width: 100%; border: 0; box-sizing: border-box; font: 700 1.2941rem/1 Pretendard, sans-serif; letter-spacing: 0.02em; color: var(--text); }
 .v4 input.field::placeholder { color: var(--text-3); font-weight: 500; }
@@ -252,7 +253,7 @@ html[data-big] .v4 .radio.on::after { width: 0.6154rem; height: 0.6154rem; }
 .v4 .kv { padding: 0.7059rem 0; border-bottom: 1px solid var(--line); }
 .v4 .kv:last-child { border-bottom: 0; }
 .v4 .kv .k { font: 500 0.8824rem/1.4 Pretendard, sans-serif; color: var(--text-2); }
-.v4 .kv .v { margin-top: 0.1765rem; font: 700 1.0588rem/1.4 Pretendard, sans-serif; letter-spacing: -0.02em; }
+.v4 .kv .v { margin-top: 0.1765rem; font: 700 1rem/1.4 Pretendard, sans-serif; letter-spacing: -0.02em; }
 .v4 .kv .s { margin-left: 0.4706rem; font: 500 0.8824rem/1.4 Pretendard, sans-serif; color: var(--text-2); letter-spacing: 0; }
 .v4 .kv .v.soft { font-weight: 500; color: var(--text-2); }
 .v4 .m-big { margin-top: 0.3529rem; font: 800 1.4118rem/1.3 Pretendard, sans-serif; letter-spacing: -0.04em; }
@@ -260,7 +261,7 @@ html[data-big] .v4 .radio.on::after { width: 0.6154rem; height: 0.6154rem; }
 /* 내 알림 카드 */
 .v4 .m-card { margin-top: 0.5882rem; padding-bottom: 0.9412rem; }
 .v4 .m-card + .m-card { margin-top: 0.7059rem; }
-.v4 .m-ct { margin-top: 0.7059rem; font: 800 1.2941rem/1.3 Pretendard, sans-serif; letter-spacing: -0.04em; }
+.v4 .m-ct { margin-top: 0.7059rem; font: 800 1.0588rem/1.3 Pretendard, sans-serif; letter-spacing: -0.04em; }
 .v4 .m-off { display: inline-block; margin-left: 0.4706rem; padding: 0.1765rem 0.5882rem; border-radius: 58.7647rem; background: var(--surface); color: var(--text-2); font: 700 0.8824rem/1.3 Pretendard, sans-serif; letter-spacing: 0; vertical-align: middle; }
 .v4 .m-card.is-off .m-ct, .v4 .m-card.is-off .kv .v { color: var(--text-2); }
 .v4 .m-btns { display: flex; gap: 0.5882rem; margin-top: 0.5882rem; }
@@ -330,7 +331,7 @@ html[data-big] .v4 .info { padding-left: 0.6923rem; padding-right: 0.6923rem; }
 .v4 .m-kick { margin: 1.1765rem 0 0; }
 /* 라벨 + 값 줄: 카드 안에서는 얇은 선으로 나눈다 */
 .v4 .kv { padding: 0.9412rem 0; }
-.v4 .kv .v { margin-top: 0.3529rem; font: 800 1.0588rem/1.45 Pretendard, sans-serif; letter-spacing: -0.02em; color: var(--accent); }
+.v4 .kv .v { margin-top: 0.3529rem; font: 800 1rem/1.45 Pretendard, sans-serif; letter-spacing: -0.02em; color: var(--accent); }
 .v4 .kv .s { color: var(--text-2); font-weight: 600; }
 .v4 .kv .v.soft, .v4 .kv .v .soft { font-weight: 500; color: var(--text-2); }
 
@@ -372,7 +373,7 @@ html[data-big] .v4 .info { padding-left: 0.6923rem; padding-right: 0.6923rem; }
 .v4 .m-hero { flex: none; padding: 1.4118rem 1.2941rem 0.2353rem; border-radius: 1.2941rem; background: var(--accent); color: var(--white); overflow-wrap: anywhere; }
 .v4 .m-hero-t { font: 700 1rem/1.5 Pretendard, sans-serif; }
 .v4 .m-hero-chip { display: inline-flex; align-items: center; min-height: 1.8824rem; margin-top: 0.4706rem; padding: 0.1176rem 0.7059rem; border-radius: 58.8235rem; background: var(--peach); color: #4A1D0B; font: 700 0.8824rem/1.2 Pretendard, sans-serif; }
-.v4 .m-hero .m-big { margin-top: 0.7059rem; font: 800 1.7647rem/1.25 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--white); }
+.v4 .m-hero .m-big { margin-top: 0.7059rem; font: 800 1.4118rem/1.25 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--white); }
 .v4 .m-hero-rows { margin-top: 0.9412rem; border-top: 1px solid rgba(255, 253, 249, 0.28); }
 .v4 .m-hero .kv { border-bottom-color: rgba(255, 253, 249, 0.28); }
 .v4 .m-hero .kv .k { color: var(--peach); }

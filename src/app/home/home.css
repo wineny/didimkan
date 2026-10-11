@@ -4,7 +4,7 @@
 /* 번호 머리(01·02·03) + 구획 제목 */
 .v4 .home .eyebrow { display: flex; align-items: center; gap: 0.5882rem; font: 700 0.8824rem/1 Pretendard, sans-serif; letter-spacing: 0.14em; color: var(--terra); font-variant-numeric: tabular-nums; }
 .v4 .home .eyebrow::after { content: ""; height: 1px; flex: 1; background: var(--line-strong); }
-.v4 .home .h2 { margin-top: 0.8235rem; font: 800 1.2941rem/1.3 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--text); }
+.v4 .home .h2 { margin-top: 0.8235rem; font: 800 1.1765rem/1.3 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--text); }
 
 /* 대표 강좌: 숲색 카드 (사진 없음, 높이는 글 길이만큼 — 「지금 칸」 라벨이 잘리지 않는다) */
 .v4 .hero-c { display: block; flex: none; padding: 1.6471rem 1.4118rem 1.5294rem; border-radius: 1.2941rem; background: var(--accent); color: var(--white); text-decoration: none; }
@@ -12,7 +12,7 @@
 /* 긴 낱말(공백 없는 기관명 등)은 칸 밖으로 넘치지 않게 끊는다 */
 .v4 .hero-c, .v4 .crow, .v4 .bstep-tx { overflow-wrap: anywhere; }
 .v4 .hero-chip { font: 700 0.8824rem/1 Pretendard, sans-serif; letter-spacing: 0.14em; color: var(--peach); }
-.v4 .hero-t { margin: 0.9412rem 0 1.0588rem; font: 800 1.5294rem/1.45 Pretendard, sans-serif; letter-spacing: -0.04em; }
+.v4 .hero-t { margin: 0.9412rem 0 1.0588rem; font: 800 1.1765rem/1.45 Pretendard, sans-serif; letter-spacing: -0.04em; }
 .v4 .hero-s { padding-top: 1.0588rem; border-top: 1px solid rgba(255, 253, 249, 0.28); font: 400 1rem/1.6 Pretendard, sans-serif; }
 .v4 .hero-c .hero-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5882rem 0.8235rem; margin-top: 0.8235rem; }
 .v4 .hero-fee { font: 700 1rem/1.4 Pretendard, sans-serif; font-variant-numeric: tabular-nums; }
@@ -30,7 +30,7 @@
 .v4 .home .step.on { background: var(--terra-soft); border-color: #E7BFA8; }
 .v4 .home .step.nx { background: var(--surface); }
 .v4 .home .step > span { display: block; }
-.v4 .home .step .n { font: 800 2.5882rem/1 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--text-3); }
+.v4 .home .step .n { font: 800 1.8824rem/1 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--text-3); }
 .v4 .home .step .n small { margin-left: 0.1176rem; font: 700 1rem/1 Pretendard, sans-serif; letter-spacing: 0; }
 .v4 .home .step.on .n { color: var(--terra); }
 .v4 .home .step .k { margin-top: 0.2353rem; font: 700 0.8824rem/1.35 Pretendard, sans-serif; letter-spacing: 0.06em; color: var(--terra); }
@@ -47,7 +47,7 @@
 .v4 .crow > span { display: block; }
 .v4 .crow-no { display: flex !important; align-items: center; gap: 0.5882rem; font: 800 0.8824rem/1 Pretendard, sans-serif; letter-spacing: 0.1em; color: var(--terra); font-variant-numeric: tabular-nums; }
 .v4 .crow-no::after { content: ""; height: 1px; flex: 1; background: var(--line); }
-.v4 .crow-t { margin: 0.8235rem 0; font: 700 1.1765rem/1.5 Pretendard, sans-serif; letter-spacing: -0.02em; }
+.v4 .crow-t { margin: 0.8235rem 0; font: 700 1rem/1.5 Pretendard, sans-serif; letter-spacing: -0.02em; }
 .v4 .crow-m { font: 400 1rem/1.6 Pretendard, sans-serif; color: var(--text-2); }
 .v4 .crow-m + .crow-m { margin-top: 0.1176rem; }
 .v4 .crow-tags { display: flex !important; flex-wrap: wrap; gap: 0.4706rem; margin-top: 0.9412rem; }
