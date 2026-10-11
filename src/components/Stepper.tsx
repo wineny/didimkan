@@ -26,6 +26,10 @@ function tag(n: number, st: Stair): string | null {
   return null;
 }
 
+/** 칸 위 장식 그림: 칸마다 씨앗·새싹·꽃 화분, 지금 칸은 그 화분을 든 고슴도치 */
+const POT = { 1: "seed", 2: "sprout", 3: "flower" } as const;
+const WALK = { 1: "h-walk-seed", 2: "h-walk", 3: "h-walk-flower" } as const;
+
 /** 큰 글자 카드 한 장: 칸 이름 + 강좌 1개 + 「더 보기」 */
 function BigCard({
   now,
@@ -124,6 +128,13 @@ export default function Stepper({ st, nowItems, nextItems }: Props) {
             </span>
             {k && <span className="k">{k}</span>}
             <span className="t">{STEP_LABELS[n]}</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className={now ? "step-art hog" : "step-art pot"}
+              src={now ? `/char/${WALK[n]}.webp` : `/char/i-pot-${POT[n]}.webp`}
+              alt=""
+              aria-hidden="true"
+            />
           </div>
         );
       })}

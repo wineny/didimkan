@@ -22,11 +22,16 @@
 
 /* 계단: 높이가 다른 3칸 (128 / 176 / 224px). 지금 칸 = 테라코타 옅은 면, 다음 칸 = 보조 면 */
 .v4 .home-stairs { margin-top: 2.5882rem; }
-.v4 .home .stairs { margin-top: 1.2941rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4706rem; align-items: end; border-bottom: 3px solid var(--text); }
-.v4 .home .stairs .step { display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; padding: 0.8235rem 0.7059rem 0.9412rem; border: 1px solid var(--line-strong); border-bottom: 0; border-radius: 0.8235rem 0.8235rem 0 0; background: var(--card); color: var(--text); }
-.v4 .home .step.s1 { height: 7.5294rem; }
-.v4 .home .step.s2 { height: 10.3529rem; }
-.v4 .home .step.s3 { height: 13.1765rem; }
+.v4 .home .stairs { margin-top: 5.1765rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4706rem; align-items: end; border-bottom: 3px solid var(--text); }
+.v4 .home .stairs .step { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; padding: 0.8235rem 0.7059rem 0.9412rem; border: 1px solid var(--line-strong); border-bottom: 0; border-radius: 0.8235rem 0.8235rem 0 0; background: var(--card); color: var(--text); }
+/* 칸 높이 = 글자가 가장 많을 때(지금 여기·두 줄 이름) 높이에 맞춤. 위쪽 빈 곳을 줄였다(2026-10-11) */
+.v4 .home .step.s1 { height: 7.1765rem; }
+.v4 .home .step.s2 { height: 8.5882rem; }
+.v4 .home .step.s3 { height: 10rem; }
+/* v6 고슴도치: 칸 위에 올린 화분·고슴도치(장식) */
+.v4 .home .step-art { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); height: auto; pointer-events: none; }
+.v4 .home .step-art.pot { width: 3.2rem; margin-bottom: -0.15rem; }
+.v4 .home .step-art.hog { width: 4.6rem; margin-bottom: -0.35rem; }
 .v4 .home .step.on { background: var(--terra-soft); border-color: #E7BFA8; }
 .v4 .home .step.nx { background: var(--surface); }
 .v4 .home .step > span { display: block; }
