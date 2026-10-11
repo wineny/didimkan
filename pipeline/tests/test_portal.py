@@ -180,6 +180,31 @@ def test_daejeon_seo_api_json(manifest):
     assert (rows[0]["sido"], rows[0]["sigungu"]) == ("대전광역시", "서구")
 
 
+def test_yeonsu_sessions_per_week(manifest):
+    # 연수구: 요일·시간·날짜 없음. 「횟수(1주)」만 sessions_per_week 로 받고, 「-」는 None. 연도 없는 기간은 안 읽는다.
+    rows = run(manifest, "incheon-yeonsu", "incheon-yeonsu__15087577.csv")
+    assert len(rows) == 3
+    assert_course_shape(rows)
+    yoga, cafe, line = rows
+    assert (yoga["title"], yoga["sessions_per_week"], yoga["capacity"]) == ("요가", 3, 30)
+    assert (cafe["title"], cafe["sessions_per_week"], cafe["capacity"]) == ("북카페", None, None)
+    assert (line["title"], line["sessions_per_week"]) == ("라인댄스", 2)
+    for r in rows:
+        assert r["weekday_bits"] == 0 and r["weekdays"] is None
+        assert r["start_date"] is None and r["end_date"] is None
+        assert r["start_time"] is None
+        assert r["is_dong_center"] == 1 and r["sigungu"] == "연수구"
+    assert yoga["dong"] == "옥련1동" and cafe["dong"] == "연수3동"
+
+
+@pytest.mark.parametrize("raw,expected", [
+    ("3", 3), ("주 2회", 2), (" 1 ", 1), ("7", 7),
+    ("-", None), ("", None), ("0", None), ("8", None), ("12", None),
+])
+def test_sessions_per_week(raw, expected):
+    assert portal._sessions_per_week(raw) == expected
+
+
 def test_ulsan_dong_broken_header_is_repaired(manifest):
     rows = run(manifest, "ulsan-dong", "ulsan-dong__3076787.csv")
     assert len(rows) == 2

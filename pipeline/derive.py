@@ -9,11 +9,14 @@
   source 가 gangnam·seoul_* 이면 만들지 않는다. 제목 기반 basic 은 허용.
 - 2·3단에 수강료 조건은 없다(2026-10-11 결정. 그전엔 무료 또는 ≤ 50,000 이었고, 분기 6만 원짜리 동주민센터
   프로그램이 대부분 빠졌다). 1단만 무료 조건이 있다.
-- 3단은 term_days ≥ 28 또는 「시작·종료일이 둘 다 없음」(기간 없는 정기 운영) + weekday_bits > 0. 한쪽 날짜만
-  있거나 거꾸로인 행은 NULL. 날짜 없는 쪽은 제목이 NON_COURSE_RE(대여·독서실·자유이용·헬스·개인레슨 등
-  시설 이용)에 걸리면 NULL — 날짜가 있던 행은 기간 조건이 이 구실을 해 왔으므로 그쪽은 손대지 않는다.
-- stair_reason 은 docs/contract.md §9 표 그대로: 1단 고정 문장 / 2단 소규모 > 1회 > 기초 / 3단 「N주 동안」,
-  날짜 없는 정기 운영은 「매주 {요일}」. N = term_days/7 반올림(0.5 는 올림).
+- 3단은 term_days ≥ 28 또는 「시작·종료일이 둘 다 없음」(기간 없는 정기 운영). 요일은 조건이 아니다(2026-10-11
+  결정 — 원본에 요일 칸이 없는 강좌 약 2,800건이 걸려 있었다. 요일을 모르면 문장에서 요일을 뺀다). 한쪽 날짜만
+  있거나 거꾸로인 행은 NULL. 날짜가 없거나 요일이 없는 행은 제목이 NON_COURSE_RE(대여·독서실·자유이용·헬스·
+  개인레슨·체력단련실 등 시설 이용)에 걸리면 NULL. 날짜·요일이 둘 다 있는 행은 전부터 3단이었으므로 손대지 않는다.
+- stair_reason 은 docs/contract.md §9 표 그대로: 1단 고정 문장 / 2단 소규모 > 1회 > 기초 / 3단 「N주 동안 {요일}」,
+  날짜 없는 정기 운영은 「매주 {요일}」. 요일을 모르면 「N주 동안 정기적으로 만나요」 / 「정기적으로 만나는
+  강좌예요」. N = term_days/7 반올림(0.5 는 올림).
+- sessions_per_week 는 weekday_bits 에서 세고, 요일이 없으면 원천이 준 값(연수구 「횟수(1주)」)을 그대로 둔다.
 - apply_status 는 contract §10 판정 순서 1~6·8·9(7번 예측은 조회 쪽 몫). src/lib/status.ts 와 같은 결과.
 - 예측: 접수시작일(today 이하) 중복 제거 → 7일 이내 이웃은 한 번의 오픈으로 묶음(build_patterns.py 방식)
   → 묶음 수 ≥ 3 일 때만 간격 중앙값으로 예측. 예상일이 today 보다 과거면 주기를 더한다(today 당일은 유지).
@@ -178,19 +181,24 @@ def stair(row: dict) -> int | None:
     # 2·3단엔 수강료 조건이 없다(2026-10-11, contract §9). 금액은 카드에 그대로 보여 준다.
     if _has_basic(row) or _is_once(row):
         return 2
-    if (row.get("weekday_bits") or 0) <= 0:
+    # 요일은 3단 조건이 아니다(2026-10-11): 원본에 요일 칸이 없는 지자체 파일·표준데이터가 많다.
+    # 시설 이용권·대여·개인레슨은 「같은 시간에 만나는」 모임이 아니므로 뺀다 — 날짜가 없거나 요일이 없는 행에서.
+    # (날짜·요일이 둘 다 있는 행은 전부터 3단이었으니 손대지 않는다. 「헬스 월수금 10~12월」 65건쯤.)
+    no_weekdays = (row.get("weekday_bits") or 0) <= 0
+    if (_no_dates(row) or no_weekdays) and NON_COURSE_RE.search(row.get("title") or ""):
         return None
     if _no_dates(row):
-        # 기간 없는 정기 운영(동주민센터 프로그램 등): 날짜 없이 요일만 있으면 정기 모임으로 본다.
-        # 단 시설 이용권·대여·개인레슨은 「같은 시간에 만나는」 모임이 아니므로 뺀다.
-        return None if NON_COURSE_RE.search(row.get("title") or "") else 3
+        return 3  # 기간 없는 정기 운영(동주민센터 프로그램 등): 날짜가 없어도 정기 모임으로 본다
     td = term_days(row.get("start_date"), row.get("end_date"))
     if td is not None and td >= 28:
         return 3
     return None
 
 
-NON_COURSE_RE = re.compile(r"대여|독서실|자유이용|자유수영|자율|개인레슨|헬스|락커|사물함")
+NON_COURSE_RE = re.compile(
+    r"대여|독서실|자유이용|자유수영|자율|개인레슨|헬스|락커|사물함|체력단련실|북카페|마을문고|수영회원"
+    r"|(?<![\d:])1\s*:\s*1(?![\d:])"  # 「1:1 피아노」 개인 레슨. 「11:10-12:10」 같은 시각 표기는 아님
+)
 
 
 def _no_dates(row: dict) -> bool:
@@ -199,6 +207,7 @@ def _no_dates(row: dict) -> bool:
 
 
 def _weekday_text(row: dict) -> str:
+    """「월·수」. 요일을 모르면 빈 문자열."""
     if row.get("weekdays"):
         return row["weekdays"].replace(",", "·")
     bits = row.get("weekday_bits") or 0
@@ -228,13 +237,15 @@ def stair_reason(row: dict, stair: int | None) -> str | None:
             return "한 번으로 끝나 부담이 적어요"
         return _basic_reason(row)
     if stair == 3:
+        days = _weekday_text(row)
         if _no_dates(row):
-            return f"매주 {_weekday_text(row)} 같은 시간에 만나요"
+            # 요일을 모르면 요일을 지어내지 않고 「정기적으로」 만 말한다(2026-10-11).
+            return f"매주 {days} 같은 시간에 만나요" if days else "정기적으로 만나는 강좌예요"
         td = term_days(row.get("start_date"), row.get("end_date"))
         if td is None:
             return None
         weeks = int(td / 7 + 0.5)
-        return f"{weeks}주 동안 {_weekday_text(row)} 같은 시간에 만나요"
+        return f"{weeks}주 동안 {days} 같은 시간에 만나요" if days else f"{weeks}주 동안 정기적으로 만나요"
     return None
 
 
@@ -374,7 +385,8 @@ def derive_all(rows: list[dict], today: date) -> list[dict]:
         row["is_dong_center"] = is_dong_center(row.get("institution"), row.get("venue"))
         row["category"] = category(row.get("title"))
         row["term_days"] = term_days(row.get("start_date"), row.get("end_date"))
-        row["sessions_per_week"] = sessions_per_week(row.get("weekday_bits"))
+        # 요일에서 세고, 요일이 없으면 원천이 준 주 횟수(연수구 「횟수(1주)」)를 그대로 둔다.
+        row["sessions_per_week"] = sessions_per_week(row.get("weekday_bits")) or row.get("sessions_per_week")
         row["signals"] = json.dumps(signals(row), separators=(",", ":"))
         row["stair"] = stair(row)
         row["stair_reason"] = stair_reason(row, row["stair"])

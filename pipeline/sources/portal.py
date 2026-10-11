@@ -60,7 +60,7 @@ TARGETS = {
     "target_raw", "capacity", "fee_raw", "fee_raw_month", "weekdays_raw", "time_range",
     "day_time", "start_time", "end_time", "date_range", "start_date", "end_date",
     "apply_range", "apply_start", "apply_end", "apply_method", "selection_method",
-    "data_date", "contact", "detail_text",
+    "data_date", "contact", "detail_text", "sessions_per_week",
 }
 # 헤더를 확인하지 못한 곳(column_map 이 비어 있음)에서 헤더 이름으로 짐작하는 규칙.
 AUTO_ALIASES = [
@@ -439,6 +439,15 @@ def _capacity(raw: object) -> int | None:
     return n if 0 < n < 9999 else None
 
 
+def _sessions_per_week(raw: object) -> int | None:
+    """「횟수(1주)」 칸: 「2」「주 2회」 → 2. 1~7 만 받고 「-」·0·빈칸은 None(지어내지 않는다)."""
+    m = re.search(r"\d+", str(raw or ""))
+    if not m:
+        return None
+    n = int(m.group(0))
+    return n if 1 <= n <= 7 else None
+
+
 def _fee(raw: object, monthly: bool = False) -> tuple[int | None, int, str | None]:
     text = _clean(raw)
     if not text:
@@ -503,6 +512,8 @@ def _apply_target(target: str, value: str, rec: dict) -> None:
         put(target, v)
     elif target == "capacity":
         put("capacity", _capacity(v))
+    elif target == "sessions_per_week":
+        put("sessions_per_week", _sessions_per_week(v))
     elif target in ("fee_raw", "fee_raw_month"):
         if rec.get("fee_raw") is None:
             rec["fee_raw"] = v

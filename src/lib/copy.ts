@@ -131,7 +131,7 @@ export function tiles(c: TileCourse): Tile[] {
       : weeks
         ? { key: "period", label: "기간", value: `${weeks}주`, tone: "neutral" }
         : c.sessionsPerWeek
-          ? { key: "period", label: "기간", value: `주 ${c.sessionsPerWeek}회`, tone: "neutral" } // contract §12 ⑤: 날짜 없이 요일만(기간 없는 정기 운영)
+          ? { key: "period", label: "기간", value: `주 ${c.sessionsPerWeek}회`, tone: "neutral" } // contract §12 ⑤: 날짜 없이 주 횟수만(요일에서 셌거나 연수구 「횟수(1주)」)
           : { key: "period", label: "기간", value: UNKNOWN, tone: "muted" };
   const place: Tile =
     c.isOnline || has("online")

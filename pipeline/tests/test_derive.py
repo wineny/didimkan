@@ -137,10 +137,24 @@ def test_stair_2_3_have_no_fee_condition():
                         weekday_bits=1)) == 3
 
 
-def test_stair_3_needs_weekdays():
+def test_stair_3_without_weekdays():
+    # 2026-10-11: 요일은 3단 조건이 아니다(원본에 요일 칸이 없는 강좌 약 2,800건). 기간 28일 이상이면 3단.
     row = course(title="서예", is_free=1, start_date="2026-10-01", end_date="2026-12-31",
                  weekday_bits=0)
-    assert stair(row) is None
+    assert stair(row) == 3
+    assert stair(course(title="서예", is_free=1, start_date="2026-10-01", end_date="2026-10-28",
+                        weekday_bits=0)) == 3  # 딱 28일
+    assert stair(course(title="서예", is_free=1, start_date="2026-10-01", end_date="2026-10-27",
+                        weekday_bits=0)) is None  # 27일: 28일 미만은 그대로 NULL
+    # 요일 조건이 우연히 막아 주던 시설·1:1 레슨 행(금천 체력단련실, 천안 헬스, 표준데이터 피아노 1:1 개인레슨)은 NULL
+    for title in ("2026년 3분기 체력단련실(헬스)", "헬스", "피아노 1:1 개인레슨", "1:1 팬플룻",
+                  "1 : 1 개인 보컬 트레이닝", "수영회원 추가모집"):
+        assert stair(course(title=title, start_date="2026-10-01", end_date="2026-12-31",
+                            weekday_bits=0)) is None, title
+    # 시각 표기 「11:10-12:10」·「평생교육이용권」은 시설이 아니다
+    for title in ("요가 [11:10-12:10]", "평생교육이용권 서예"):
+        assert stair(course(title=title, start_date="2026-10-01", end_date="2026-12-31",
+                            weekday_bits=0)) == 3, title
 
 
 def test_stair_3_no_dates_weekly():
@@ -149,9 +163,12 @@ def test_stair_3_no_dates_weekly():
     assert stair(course(title="서예", is_free=1, weekday_bits=1)) == 3
 
 
-def test_stair_3_no_dates_still_needs_weekdays():
-    assert stair(course(title="서예", is_free=1, weekday_bits=0)) is None
-    assert stair(course(title="서예", is_free=1, weekday_bits=None)) is None
+def test_stair_3_no_dates_without_weekdays():
+    # 날짜도 요일도 없음(연수구·서대문 목록 꼴): 2026-10-11 결정으로 3단. 시설 이용은 여전히 NULL.
+    assert stair(course(title="서예", is_free=1, weekday_bits=0)) == 3
+    assert stair(course(title="서예", is_free=1, weekday_bits=None)) == 3
+    assert stair(course(title="북카페", weekday_bits=0)) is None
+    assert stair(course(title="체력단련실", weekday_bits=0)) is None
 
 
 def test_stair_no_dates_other_rules_still_first():
@@ -164,7 +181,7 @@ def test_stair_no_dates_other_rules_still_first():
 
 @pytest.mark.parametrize("title", [
     "헬스월수금", "자유수영11시_매일", "자율탁구4", "★탁구개인레슨2", "독서실", "자치회관 공유물품 대여",
-    "새벽배드민턴(자유이용)", "락커 월이용",
+    "새벽배드민턴(자유이용)", "락커 월이용", "체력단련실", "북카페", "마을문고",
 ])
 def test_stair_3_no_dates_excludes_facility_use(title: str):
     # 시설 이용권·대여·개인레슨은 「같은 시간에 만나는」 모임이 아니다
@@ -206,6 +223,10 @@ def test_stair_reason_texts():
     # 3단 상시 운영: 날짜가 없으니 주 수를 지어내지 않고 「매주」
     always = course(weekdays="화,목", weekday_bits=0b1010)
     assert stair_reason(always, 3) == "매주 화·목 같은 시간에 만나요"
+    # 3단 요일 없음(2026-10-11): 요일을 지어내지 않고 「정기적으로」 만
+    dated_no_wd = course(start_date="2026-10-01", end_date="2026-12-31", weekday_bits=0)
+    assert stair_reason(dated_no_wd, 3) == "13주 동안 정기적으로 만나요"
+    assert stair_reason(course(weekday_bits=0, sessions_per_week=3), 3) == "정기적으로 만나는 강좌예요"
     assert stair_reason(course(start_date="2026-10-01", weekday_bits=1), 3) is None
     assert stair_reason(course(), None) is None
 
@@ -223,6 +244,7 @@ def test_stair_reason_no_banned_words():
         course(capacity=3, title="기초"), course(capacity=99, weekday_bits=127),
         course(start_date="2026-10-10", end_date="2026-10-10"), course(title="입문"),
         course(capacity=25, weekday_bits=0b1000000),
+        course(weekday_bits=0), course(start_date="2026-01-01", end_date="2026-12-31", weekday_bits=0),
     ]
     for r in rows:
         for s in (1, 2, 3):
@@ -413,6 +435,18 @@ def test_derive_all_fills_columns():
     assert isinstance(r["signals"], str)
     assert json.loads(r["signals"]) == ["free", "basic", "small"]
     assert rows[0]["signals"] == "[]"  # 입력은 바꾸지 않는다
+
+
+def test_derive_all_keeps_source_sessions_when_no_weekdays():
+    # 연수구 「횟수(1주)」: 요일이 없으면 원천 값을 그대로, 요일이 있으면 요일에서 센 값이 이긴다
+    rows = [course(title="요가", weekday_bits=0, sessions_per_week=3),
+            course(title="요가", weekday_bits=0b101, sessions_per_week=3),
+            course(title="요가", weekday_bits=0)]
+    a, b, c = derive_all(rows, date(2026, 10, 11))
+    assert a["sessions_per_week"] == 3 and a["stair"] == 3
+    assert a["stair_reason"] == "정기적으로 만나는 강좌예요"
+    assert b["sessions_per_week"] == 2
+    assert c["sessions_per_week"] is None
 
 
 def test_derive_all_gangnam_is_dong_center():
