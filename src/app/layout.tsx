@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   // 카톡 등 공유 미리보기. 그림은 src/app/opengraph-image.png
   openGraph: {
     title: "디딤칸 — 한 칸씩, 동네 배움으로",
-    description: "집에서 시작해도 괜찮아요. 지금 나갈 수 있는 만큼만 동네 강좌를 골라 드릴게요.",
+    description: "집에서 시작해도 괜찮아요. 한 칸씩 동네 강좌를 골라 드려요.",
     siteName: "디딤칸",
     locale: "ko_KR",
     type: "website",
