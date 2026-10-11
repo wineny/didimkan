@@ -344,6 +344,9 @@ html[data-big] .v4 .info { padding-left: 0.6923rem; padding-right: 0.6923rem; }
 .v4 .opt-pot { flex: none; width: 3.1rem; height: 3.1rem; object-fit: contain; }
 .v4 .hello { display: flex; align-items: flex-end; justify-content: space-between; gap: 0.4706rem; }
 .v4 .hello-img { flex: none; width: 5.4rem; height: auto; margin: -0.2353rem -0.3529rem -0.4706rem 0; }
+.v4 .m-hello { display: flex; align-items: flex-end; gap: 0.4706rem; margin-top: 0.8235rem; }
+.v4 .m-hello-tx, .v4 .m-hello > .h1 { flex: 1; min-width: 0; }
+.v4 .m-hello-img { flex: none; width: 5.2rem; height: auto; margin: 0 -0.3529rem -0.4706rem 0; }
 .v4 .opts > button.opt .radio { background: var(--card); }
 .v4 .note { font-size: 1rem; }
 
@@ -413,7 +416,8 @@ html[data-big] .v4 .kv .k, html[data-big] .v4 .sec, html[data-big] .v4 .m-kick {
 html[data-big] .v4 .opts > button.opt { gap: 0.4615rem; padding: 0.5385rem 0.6154rem; border-radius: 0.8462rem; }
 html[data-big] .v4 .opts:has(> button.opt) { gap: 0.4615rem; }
 html[data-big] .v4 .opt-pot { display: none; }
-html[data-big] .v4 .hello-img { width: 2.6rem; margin: 0; }
+html[data-big] .v4 .hello-img, html[data-big] .v4 .m-hello-img { width: 2.6rem; margin: 0; }
+html[data-big] .v4 .m-hello { margin-top: 0; }
 html[data-big] .v4 .opts.p-list > button.li { min-height: 2.4616rem; }
 html[data-big] .v4 .m-pick .m-pick-line, html[data-big] .v4 .m-card .meta { font-size: 0.7692rem; }
 html[data-big] .v4 .m-sent, html[data-big] .v4 .m-resend { font-size: 0.8462rem; }

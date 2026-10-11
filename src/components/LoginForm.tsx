@@ -154,7 +154,11 @@ export default function LoginForm({
     return (
       <div className="m-form">
         <div className="body">
-          <h1 className="h1 gap-h1">{C.confirmH1}</h1>
+          <div className="m-hello">
+            <h1 className="h1 gap-h1">{C.confirmH1}</h1>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="m-hello-img" src="/char/h-bell.webp" alt="" aria-hidden="true" />
+          </div>
           <div className="p-card m-pick gap-24">
             <p className="m-courseline" role="status">
               {course.title}
@@ -192,8 +196,15 @@ export default function LoginForm({
   return (
     <form className="m-form" onSubmit={onSubmit} noValidate>
       <div className="body">
-        <p className="m-kick">{step === 1 ? C.kick1 : C.kick2}</p>
-        <h1 className="h1 gap-8">{C.h1}</h1>
+        <div className="m-hello">
+          <div className="m-hello-tx">
+            <p className="m-kick">{step === 1 ? C.kick1 : C.kick2}</p>
+            <h1 className="h1 gap-8">{C.h1}</h1>
+          </div>
+          {/* 1단계 수줍은 고슴도치, 2단계 편지(문자) 받는 고슴도치 */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="m-hello-img" src={step === 1 ? "/char/h-shy.webp" : "/char/h-letter.webp"} alt="" aria-hidden="true" />
+        </div>
         <p className="sub">{C.sub}</p>
 
         {course ? (
