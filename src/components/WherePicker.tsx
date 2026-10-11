@@ -20,6 +20,22 @@ function Chev() {
   );
 }
 
+const WALK = { 1: "h-walk-seed", 2: "h-walk", 3: "h-walk-flower" } as const;
+
+/** 제목 + 한 줄 + 오른쪽에 고른 단계 화분을 든 고슴도치(장식) */
+function Heading({ title, sub, stair }: { title: string; sub: string | null; stair: Stair }) {
+  return (
+    <div className="m-hello">
+      <div className="m-hello-tx">
+        <h1 className="h1">{title}</h1>
+        <p className="sub gap-sub">{sub}</p>
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="m-hello-img" src={`/char/${WALK[stair]}.webp`} alt="" aria-hidden="true" />
+    </div>
+  );
+}
+
 /** 시도 → 시군구 → 동 순서로 한 화면에 한 질문. 크게 보기에서는 구까지만 묻는다(R2). */
 export default function WherePicker({ tree, stair }: Props) {
   const router = useRouter();
@@ -60,8 +76,7 @@ export default function WherePicker({ tree, stair }: Props) {
   if (step === "sido") {
     return (
       <main className="body">
-        <h1 className="h1 gap-h1">어느 시·도에 사세요?</h1>
-        <p className="sub gap-sub">가까운 곳부터 이어드릴게요.</p>
+        <Heading title="어느 시·도에 사세요?" sub="가까운 곳부터 이어드릴게요." stair={stair} />
         <div className="opts gap-opts p-list">
           {tree.sido.map((s) => (
             <button
@@ -87,8 +102,7 @@ export default function WherePicker({ tree, stair }: Props) {
   if (step === "sigungu") {
     return (
       <main className="body">
-        <h1 className="h1 gap-h1">어느 구·시예요?</h1>
-        <p className="sub gap-sub">{sido}</p>
+        <Heading title="어느 구·시예요?" sub={sido} stair={stair} />
         <div className="opts gap-opts p-list">
           {(sidoNode?.sigungu ?? []).map((g) => (
             <button key={g.name} type="button" className="li" data-sigungu={g.name} onClick={() => pickGu(g.name)}>
@@ -110,10 +124,11 @@ export default function WherePicker({ tree, stair }: Props) {
   return (
     <>
       <main className="body">
-        <h1 className="h1 gap-h1">{step === "dong" ? "가까운 동이 있나요?" : "이 동네로 볼게요"}</h1>
-        <p className="sub gap-sub">
-          {step === "dong" ? `${sido} ${sigungu}에서 고르세요. 안 골라도 돼요.` : `${sido} ${sigungu}`}
-        </p>
+        <Heading
+          title={step === "dong" ? "가까운 동이 있나요?" : "이 동네로 볼게요"}
+          sub={step === "dong" ? `${sido} ${sigungu}에서 고르세요. 안 골라도 돼요.` : `${sido} ${sigungu}`}
+          stair={stair}
+        />
         {step === "dong" && (
           <div className="gap-opts">
             <ChoiceList items={items} selected={dong} onSelect={setDong} dataAttr="data-dong" label="가까운 동" />
