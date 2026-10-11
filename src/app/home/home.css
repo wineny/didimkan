@@ -76,7 +76,6 @@
 .v4 .bstep-note { margin: 0.1538rem 0 0; font: 500 0.8462rem/1.35 Pretendard, sans-serif; }
 .v4 .bstep-c { display: flex; gap: 0.4615rem; align-items: center; padding: 0.3077rem 0; color: var(--text); text-decoration: none; }
 .v4 .bstep-th { flex: none; width: 2.6923rem; height: 2.6923rem; border-radius: 0.3846rem; object-fit: cover; display: block; }
-.v4 .bstep-th-plain { background: var(--surface); }
 .v4 .bstep-tx { flex: 1; min-width: 0; display: block; }
 .v4 .bstep-tx > span { display: block; }
 .v4 .bstep-ct { font: 800 1rem/1.3 Pretendard, sans-serif; letter-spacing: -0.03em; }

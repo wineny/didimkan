@@ -59,11 +59,9 @@ function BigCard({
         const src = photoOf(v.category);
         return (
           <Link key={v.id} href={v.href} className="bstep-c" data-course>
-            {src ? (
+            {src && (
               // eslint-disable-next-line @next/next/no-img-element
               <img className="bstep-th" src={src} alt="" />
-            ) : (
-              <span className="bstep-th bstep-th-plain" aria-hidden="true" />
             )}
             <span className="bstep-tx">
               <span className="bstep-ct">{v.title}</span>
