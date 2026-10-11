@@ -20,11 +20,17 @@ export default async function MePage() {
   const now = getNow();
 
   return (
-    <Shell>
+    <Shell foot="실제 접수는 기관에 확인하세요 · 그림은 AI 생성 시범 이미지">
       <main className="m-main" aria-label={C.h1}>
         <div className="body">
-          <h1 className="h1 gap-h1">{C.h1}</h1>
-          <p className="sub">{C.sub}</p>
+          <div className="m-hello">
+            <div className="m-hello-tx">
+              <h1 className="h1">{C.h1}</h1>
+              <p className="sub">{C.sub}</p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="m-hello-img" src="/char/h-bell.webp" alt="" aria-hidden="true" />
+          </div>
 
           <div className="sec gap-24">
             {C.listLabel} · {alerts.length}개
@@ -51,12 +57,20 @@ export default async function MePage() {
                   {course ? course.title : C.gone}
                   {a.isOn ? null : <span className="m-off">{C.off}</span>}
                 </div>
+                {a.isOn ? null : (
+                  // 꺼진 알림: 낮잠 자는 고슴도치(장식)
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="m-card-zz" src="/char/h-sleep.webp" alt="" aria-hidden="true" />
+                )}
                 {line ? <div className="meta">{line}</div> : null}
                 {course ? (
                   <div className="m-card-rows">
-                    <div className="kv">
+                    <div className={a.isOn ? "kv m-kv-can" : "kv"}>
                       <div className="k">{C.nextSms}</div>
                       <div className="v">{a.isOn ? next : C.offNext}</div>
+                      {/* 켜진 알림: 물 주는 중(장식) */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {a.isOn ? <img className="m-can" src="/char/i-can.webp" alt="" aria-hidden="true" /> : null}
                     </div>
                     <div className="kv">
                       <div className="k">{C.left}</div>

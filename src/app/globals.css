@@ -425,6 +425,14 @@ html[data-big] .v4 .hello-img, html[data-big] .v4 .m-hello-img { width: 2.6rem; 
 /* 알림 카드 왼쪽 가장자리에 걸린 종(장식) */
 .v4 .m-hero-bell { position: absolute; left: -0.8rem; top: 0.9rem; width: 2.3rem; height: auto; transform: scaleX(-1) rotate(-20deg); pointer-events: none; }
 html[data-big] .v4 .m-hero-bell { display: none; }
+/* 내 알림: 꺼진 카드 오른쪽 위 낮잠 고슴도치, 켜진 카드 「다음 문자」 줄 물뿌리개 */
+.v4 .m-card.is-off { position: relative; }
+.v4 .m-card.is-off .m-ct { padding-right: 3.8rem; }
+.v4 .m-card-zz { position: absolute; right: 0.8rem; top: 0.6rem; width: 3.6rem; height: auto; pointer-events: none; }
+.v4 .m-kv-can { position: relative; padding-right: 3.8rem; }
+.v4 .m-can { position: absolute; right: 0; top: 50%; width: 3.4rem; height: auto; transform: translateY(-50%) rotate(-8deg); pointer-events: none; }
+html[data-big] .v4 .m-card-zz, html[data-big] .v4 .m-can { display: none; }
+html[data-big] .v4 .m-card.is-off .m-ct, html[data-big] .v4 .m-kv-can { padding-right: 0; }
 html[data-big] .v4 .opts.p-list > button.li { min-height: 2.4616rem; }
 html[data-big] .v4 .m-pick .m-pick-line, html[data-big] .v4 .m-card .meta { font-size: 0.7692rem; }
 html[data-big] .v4 .m-sent, html[data-big] .v4 .m-resend { font-size: 0.8462rem; }
