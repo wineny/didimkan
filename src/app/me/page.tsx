@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { applyWhen } from "@/components/alertText";
 import { AlertControls } from "@/components/MeActions";
 import MeActions from "@/components/MeActions";
+import EmptyNote from "@/components/EmptyNote";
 import Shell from "@/components/Shell";
 import { listMyAlerts } from "@/db/alerts";
 import { getSession } from "@/lib/auth";
@@ -35,7 +36,7 @@ export default async function MePage() {
           <div className="sec gap-24">
             {C.listLabel} · {alerts.length}개
           </div>
-          {alerts.length === 0 ? <p className="m-empty">{C.empty}</p> : null}
+          {alerts.length === 0 ? <EmptyNote className="m-empty">{C.empty}</EmptyNote> : null}
           {alerts.map((a) => {
             const course = a.course;
             const line = course
@@ -58,9 +59,9 @@ export default async function MePage() {
                   {a.isOn ? null : <span className="m-off">{C.off}</span>}
                 </div>
                 {a.isOn ? null : (
-                  // 꺼진 알림: 낮잠 자는 고슴도치(장식)
+                  // 꺼진 알림: 물 주기를 멈춘 흐린 물뿌리개(장식). 고슴도치는 제목 옆 한 번만
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img className="m-card-zz" src="/char/h-sleep.webp" alt="" aria-hidden="true" />
+                  <img className="m-can-off" src="/char/i-can.webp" alt="" aria-hidden="true" />
                 )}
                 {line ? <div className="meta">{line}</div> : null}
                 {course ? (

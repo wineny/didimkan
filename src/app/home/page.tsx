@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CourseRow, { photoOf, toView } from "@/components/CourseRow";
+import EmptyNote from "@/components/EmptyNote";
 import HeroCourse from "@/components/HeroCourse";
 import Shell from "@/components/Shell";
 import Stepper from "@/components/Stepper";
@@ -53,7 +54,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
               <h2 className="h2 home-lab" id="home-now">
                 지금 칸
               </h2>
-              <p className="home-empty">{EMPTY_LIST}</p>
+              <EmptyNote className="home-empty">{EMPTY_LIST}</EmptyNote>
               <Link href={`/where?st=${st}`} className="sbtn home-where">
                 동네 바꾸기
               </Link>

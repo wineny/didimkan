@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { applyWhen, slotMark } from "@/components/alertText";
+import EmptyNote from "@/components/EmptyNote";
 import Shell from "@/components/Shell";
 import { getMyAlert } from "@/db/alerts";
 import { getSession } from "@/lib/auth";
@@ -44,7 +45,7 @@ export default async function AlertSmsPage({ params }: PageProps<"/alert/[id]/sm
         {header}
         <main className="m-main" aria-label={C.title}>
           <div className="body">
-            <p className="sub gap-24">{C.empty}</p>
+            <EmptyNote className="sub">{C.empty}</EmptyNote>
           </div>
           <div className="m-acts">
             <Link className="sbtn" href={back}>
