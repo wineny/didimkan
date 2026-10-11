@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { CourseWithStatus } from "@/db/queries";
 import type { Category } from "@/db/schema";
-import { capacityHint, feeLabel, UNKNOWN } from "@/lib/copy";
+import { capacityHint, feeLabel, UNKNOWN, unknownLine } from "@/lib/copy";
 
 /** 서버에서 만들어 클라이언트 컴포넌트에도 넘기는 홈 카드용 값 (직렬화 가능) */
 export type CourseView = {
@@ -11,11 +11,18 @@ export type CourseView = {
   category: Category | null;
   when: string;
   whenShort: string;
+  /** 요일·시간을 하나라도 알면 true. 모르면 when 줄을 빼고 unknownLine 에 모은다 */
+  whenKnown: boolean;
   fee: string;
+  feeKnown: boolean;
   capacity: string | null;
   dday: string;
+  /** 접수 상태를 알면 true(접수 전·중·연중·지난 회차). 모르면 dday 칩을 빼고 unknownLine 에 모은다 */
+  applyKnown: boolean;
   /** 접수 전·접수 중·연중이면 true (테라코타 칩), 지난 회차·확인 안 됨이면 false (옅은 칩) */
   ddayOn: boolean;
+  /** 「요일·수강료·접수일 확인 안 됨」처럼 모르는 값을 한 줄로. 다 알면 null */
+  unknownLine: string | null;
   reason: string;
   href: string;
   collectedAt: string;
@@ -86,6 +93,9 @@ function whenOf(c: CourseWithStatus): { long: string; short: string } {
 
 export function toView(c: CourseWithStatus, query: string): CourseView {
   const w = whenOf(c);
+  const whenKnown = w.long !== UNKNOWN;
+  const feeKnown = !!c.isFree || c.feeWon != null;
+  const applyKnown = c.status.status !== "unknown";
   return {
     id: c.id,
     title: c.title,
@@ -93,15 +103,25 @@ export function toView(c: CourseWithStatus, query: string): CourseView {
     category: c.category,
     when: w.long,
     whenShort: w.short,
+    whenKnown,
     fee: feeLabel(c.feeWon, c.isFree, c.feePeriod),
+    feeKnown,
     capacity: c.capacity == null ? null : `${c.capacity}명`,
     dday: c.ddayLabel,
+    applyKnown,
     ddayOn: c.status.status === "before" || c.status.status === "open" || c.status.status === "always",
+    unknownLine: unknownLine({ when: whenKnown, fee: feeKnown, apply: applyKnown }),
     reason: c.stairReason ?? capacityHint(c.capacity) ?? "",
     href: `/course/${c.id}?${query}`,
     collectedAt: c.collectedAt,
     source: sourceName(c.source),
   };
+}
+
+/** 「수강료 · 정원」 칩 글자. 수강료를 모르면 정원만, 둘 다 없으면 null(모르는 값은 unknownLine 으로). */
+export function feeChip(v: CourseView): string | null {
+  const parts = [v.feeKnown ? v.fee : null, v.capacity].filter(Boolean);
+  return parts.length ? parts.join(" · ") : null;
 }
 
 /** 「출처 · 수집일」 한 줄용 (홈 대표 강좌). 대표 강좌는 사진을 싣지 않으므로 AI 이미지 문구는 화면 아래 줄에 둔다. */
@@ -139,13 +159,11 @@ export default function CourseRow({
       {label && <span className="crow-lab">{label}</span>}
       <span className="crow-t">{v.title}</span>
       <span className="crow-m">{v.institution}</span>
-      <span className="crow-m">{v.when}</span>
+      {v.whenKnown && <span className="crow-m">{v.when}</span>}
       <span className="crow-tags">
-        <span className="chip off">
-          {v.fee}
-          {v.capacity ? ` · ${v.capacity}` : ""}
-        </span>
-        <span className={v.ddayOn ? "chip" : "chip off"}>{v.dday}</span>
+        {feeChip(v) && <span className="chip off">{feeChip(v)}</span>}
+        {v.applyKnown && <span className={v.ddayOn ? "chip" : "chip off"}>{v.dday}</span>}
+        {v.unknownLine && <span className="chip off">{v.unknownLine}</span>}
       </span>
       {!photo && v.reason && <span className="crow-why">{v.reason}</span>}
     </Link>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FORBIDDEN, M2_COPY, EMPTY_LIST, STAIR_NAMES, STAIR_SUB, STEP_LABELS, HOME_HINT, NEXT_SLOT_STAIR3, capacityHint, feeLabel, phoneText, tiles } from "./copy";
+import { FORBIDDEN, M2_COPY, EMPTY_LIST, STAIR_NAMES, STAIR_SUB, STEP_LABELS, HOME_HINT, NEXT_SLOT_STAIR3, capacityHint, feeLabel, phoneText, tiles, unknownLine } from "./copy";
 
 const course = {
   isFree: false, isOnline: false, feeWon: 18000, feePeriod: "월" as const, capacity: 20,
@@ -47,6 +47,12 @@ describe("tiles", () => {
   it("요일 없이 날짜만(표준데이터 꼴)은 주 횟수를 지어내지 않고 N주만 (contract §12 ⑤)", () => {
     const t = tiles({ ...course, termDays: 92, sessionsPerWeek: null });
     expect(t.find((x) => x.key === "period")?.value).toBe("13주");
+  });
+  it("카드의 모르는 값은 한 줄로 모은다 (2026-10-11)", () => {
+    expect(unknownLine({ when: false, fee: false, apply: false })).toBe("요일·수강료·접수일 확인 안 됨");
+    expect(unknownLine({ when: true, fee: false, apply: true })).toBe("수강료 확인 안 됨");
+    expect(unknownLine({ when: false, fee: true, apply: false })).toBe("요일·접수일 확인 안 됨");
+    expect(unknownLine({ when: true, fee: true, apply: true })).toBeNull();
   });
   it("정보가 없으면 확인 안 됨", () => {
     const t = tiles({ ...course, feeWon: null, capacity: null, selectionMethod: null, termDays: null, sessionsPerWeek: null });

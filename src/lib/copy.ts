@@ -40,6 +40,15 @@ export const NO_SIGNAL = "찾은 신호가 없어요";
 export const ESTIMATE_NOTE = "예상이며 확정 아님";
 export const UNKNOWN = "확인 안 됨";
 
+/**
+ * 카드에서 모르는 값을 한 줄로 모은다(2026-10-11): 「요일·수강료·접수일 확인 안 됨」.
+ * 요일·시간·수강료·접수일이 다 없는 강좌(연수구 꼴)에 「확인 안 됨」이 세 번 나오던 것을 합친 것. 다 알면 null.
+ */
+export function unknownLine(known: { when: boolean; fee: boolean; apply: boolean }): string | null {
+  const parts = [!known.when && "요일", !known.fee && "수강료", !known.apply && "접수일"].filter(Boolean);
+  return parts.length ? `${parts.join("·")} ${UNKNOWN}` : null;
+}
+
 /** 정원 → 홈 카드 보조 문구. 15명 이하면 얼굴을 익히기 쉽다고, 아니면 조용히 앉아 있어도 된다고 적는다. */
 export function capacityHint(capacity: number | null | undefined): string | null {
   if (capacity == null) return null;

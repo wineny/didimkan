@@ -70,9 +70,10 @@ function BigCard({
             <span className="bstep-tx">
               <span className="bstep-ct">{v.title}</span>
               <span className="bstep-cm">
-                {v.institution} · {v.whenShort}
+                {v.institution}
+                {v.whenKnown ? ` · ${v.whenShort}` : ""}
               </span>
-              <span className="bstep-cm">{v.dday}</span>
+              <span className="bstep-cm">{v.applyKnown ? v.dday : v.unknownLine}</span>
             </span>
           </Link>
         );
