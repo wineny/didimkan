@@ -445,7 +445,18 @@ def _fee(raw: object, monthly: bool = False) -> tuple[int | None, int, str | Non
         return None, 0, None
     if FREE_WORDS.search(text) or re.fullmatch(r"없음|해당\s*없음|0+", text):
         return 0, 1, None
+    # 「1만원」「3만원/분기」「7만 5천원」: 숫자만 먼저 뽑으면 「만」이 끊겨 놓치므로 parse_fee 처럼 만 단위를 먼저 본다.
+    # 「원」이 꼭 붙어야 하고(「만 65세」「1만명」 제외), 앞에 숫자·점·쉼표가 없어야 하며(「1.5만원」은 모름),
+    # 「30,000원(재료비 1만원 별도)」처럼 원 금액이 앞에 있으면 그쪽을 쓴다.
+    man = re.search(r"(?<![\d.,])(\d+)\s*만(?:\s*(\d+)\s*천)?\s*원", text)
     m = re.search(r"(\d[\d,]*)\s*원", text)
+    if man and (m is None or man.start() <= m.start()):
+        won = int(man.group(1)) * 10_000 + int(man.group(2) or 0) * 1_000
+        # 기간은 금액이 든 쉼표 구간만 본다: 「3개월 6만원, 1개월 2만원」의 뒤 구간 「1개월」에 끌리지 않게
+        seg_start = max(text.rfind(",", 0, man.start()), text.rfind("，", 0, man.start())) + 1
+        ends = [i for i in (text.find(",", man.end()), text.find("，", man.end())) if i >= 0]
+        segment = text[seg_start:min(ends) if ends else len(text)]
+        return won, 0, "월" if monthly or MONTHLY_RE.search(segment) else "총"
     amount = m.group(1) if m else None
     if amount is None:
         m = re.search(r"\d{1,3}(?:,\d{3})+|\d{3,}", text)

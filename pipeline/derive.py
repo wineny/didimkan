@@ -7,6 +7,8 @@
   「기타」는 뒤에 「등·교양·과정·강좌·프로그램·활동」이 오면 악기로 보지 않는다. 「그림책」은 미술 아님.
 - 설명 기반 신호(basic 의 설명 부분·welcome·no_supplies)는 description 이 None 이거나
   source 가 gangnam·seoul_* 이면 만들지 않는다. 제목 기반 basic 은 허용.
+- 2·3단에 수강료 조건은 없다(2026-10-11 결정. 그전엔 무료 또는 ≤ 50,000 이었고, 분기 6만 원짜리 동주민센터
+  프로그램이 대부분 빠졌다). 1단만 무료 조건이 있다.
 - 3단은 term_days ≥ 28 또는 「시작·종료일이 둘 다 없음」(기간 없는 정기 운영) + weekday_bits > 0. 한쪽 날짜만
   있거나 거꾸로인 행은 NULL. 날짜 없는 쪽은 제목이 NON_COURSE_RE(대여·독서실·자유이용·헬스·개인레슨 등
   시설 이용)에 걸리면 NULL — 날짜가 있던 행은 기간 조건이 이 구실을 해 왔으므로 그쪽은 손대지 않는다.
@@ -30,7 +32,6 @@ from pipeline.common.parse import safe_http_url
 
 WEEKDAYS = "월화수목금토일"
 SIGNAL_KEYS = ("free", "basic", "small", "lottery", "once", "online", "welcome", "no_supplies")
-FEE_LIMIT = 50_000
 SMALL_MAX = 15
 
 DONG_CENTER_RE = re.compile(r"동주민센터|행정복지센터|자치회관|주민자치|동\s*복합문화센터|복합문화센터|주민센터|커뮤니티센터")
@@ -149,14 +150,6 @@ def signals(row: dict) -> list[str]:
     return [k for k in SIGNAL_KEYS if k in found]
 
 
-def _fee_ok(row: dict) -> bool:
-    # R18: fee_period(월·총)와 무관하게 fee_won 에 적용
-    if row.get("is_free"):
-        return True
-    fee = row.get("fee_won")
-    return fee is not None and fee <= FEE_LIMIT
-
-
 CHILD_RE = re.compile(r"어린이|영유아|유아|초등|청소년|키즈|아동|미취학|초·중|초중|중학생|고등학생|초등학생")
 ADULT_RE = re.compile(r"성인|어르신|노인|일반|주민|누구나|시민|중장년|시니어|고객|구민|군민|도민|성년|직장인|경력단절|부모|학부모|(?:만\s*)?(?:1[89]|[2-9]\d)세\s*이상")
 AGE_RANGE_RE = re.compile(r"(?:만\s*)?(\d{1,2})\s*세?\s*[-~–]\s*(?:만\s*)?(\d{1,2})\s*세")
@@ -182,8 +175,7 @@ def stair(row: dict) -> int | None:
     online = bool(row.get("is_online"))
     if online:
         return 1 if row.get("is_free") else None
-    if not _fee_ok(row):
-        return None
+    # 2·3단엔 수강료 조건이 없다(2026-10-11, contract §9). 금액은 카드에 그대로 보여 준다.
     if _has_basic(row) or _is_once(row):
         return 2
     if (row.get("weekday_bits") or 0) <= 0:

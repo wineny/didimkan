@@ -106,12 +106,12 @@ def test_stair_online_paid_is_null():
     assert stair(course(is_online=1, is_free=0, fee_won=10000)) is None
 
 
-def test_stair_2_basic_cheap():
+def test_stair_2_basic():
     assert stair(course(title="기초 요가", fee_won=30000)) == 2
 
 
-def test_stair_2_monthly_fee_r18():
-    # 월 18,000원도 ≤ 50,000 기준 통과
+def test_stair_2_monthly_fee():
+    # fee_period 와 무관(수강료 조건 자체가 없다, 2026-10-11)
     assert stair(course(title="입문 서예", fee_won=18000, fee_period="월")) == 2
 
 
@@ -127,14 +127,14 @@ def test_stair_both_match_prefers_2():
     assert stair(row) == 2
 
 
-def test_stair_null_expensive():
-    row = course(title="기초 서예", fee_won=60000, start_date="2026-10-01",
-                 end_date="2026-12-31", weekday_bits=1)
-    assert stair(row) is None
-
-
-def test_stair_null_fee_unknown_not_free():
-    assert stair(course(title="기초 서예", fee_won=None, is_free=0)) is None
+def test_stair_2_3_have_no_fee_condition():
+    # 2026-10-11: 2·3단에 수강료 조건 없음. 비싸도, 몰라도 올린다(1단만 무료 조건).
+    assert stair(course(title="기초 서예", fee_won=60000, start_date="2026-10-01",
+                        end_date="2026-12-31", weekday_bits=1)) == 2
+    assert stair(course(title="기초 서예", fee_won=None, is_free=0)) == 2
+    assert stair(course(title="서예", fee_won=None, is_free=0, weekday_bits=0b101)) == 3
+    assert stair(course(title="서예", fee_won=350000, start_date="2026-10-01", end_date="2026-12-31",
+                        weekday_bits=1)) == 3
 
 
 def test_stair_3_needs_weekdays():
@@ -149,11 +149,9 @@ def test_stair_3_no_dates_weekly():
     assert stair(course(title="서예", is_free=1, weekday_bits=1)) == 3
 
 
-def test_stair_3_no_dates_still_needs_weekdays_and_fee():
+def test_stair_3_no_dates_still_needs_weekdays():
     assert stair(course(title="서예", is_free=1, weekday_bits=0)) is None
     assert stair(course(title="서예", is_free=1, weekday_bits=None)) is None
-    assert stair(course(title="서예", fee_won=None, is_free=0, weekday_bits=1)) is None
-    assert stair(course(title="서예", fee_won=60000, weekday_bits=1)) is None
 
 
 def test_stair_no_dates_other_rules_still_first():
