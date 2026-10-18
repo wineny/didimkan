@@ -68,7 +68,7 @@ test('④ 크게 보기: 새로고침 뒤 유지, 글자 1.4배↑, 버튼 64px�
 test('⑤ 390px 가로 넘침 0: 4화면 × 일반·크게', async ({ page }) => {
   const ids = loadFixtureIds();
   const q = `st=2&sido=${ids.sido ?? ''}&sigungu=${ids.sigungu ?? ''}`;
-  const paths = ['/', `/where?${q}`, `/home?${q}`, `/course/${ids.ids?.["9632"] ?? "9632"}?${q}`, '/login', '/privacy'];
+  const paths = ['/', `/where?${q}`, `/home?${q}`, `/course/${ids.ids?.["9632"] ?? "9632"}?${q}`, '/login', '/privacy', '/about'];
   for (const big of [false, true]) {
     for (const p of paths) {
       await page.goto(p);

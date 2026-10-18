@@ -237,6 +237,10 @@ export default function LoginForm({
               {C.note}{" "}
               <Link href="/privacy" className="link">
                 {C.privacyLink}
+              </Link>{" "}
+              <span aria-hidden="true">·</span>{" "}
+              <Link href="/about" className="link">
+                {C.aboutLink}
               </Link>
             </p>
           </>

@@ -412,6 +412,17 @@ html[data-big] .v4 .info { padding-left: 0.6923rem; padding-right: 0.6923rem; }
 .v4 .m-priv .kv .v { font: 500 1rem/1.6 Pretendard, sans-serif; letter-spacing: -0.01em; color: var(--text); }
 .v4 .m-draft { background: var(--terra-soft); color: var(--terra-ink); }
 
+/* 기관 안내(/about): 절 제목 + 카드. 숫자 행은 kv 기본(굵은 숲색), 문장 행은 .txt(개인정보와 같은 500) */
+.v4 .m-about .lead { margin: 0.7059rem 0 0; font: 500 1rem/1.6 Pretendard, sans-serif; letter-spacing: -0.01em; color: var(--text); }
+.v4 .m-about .kv .v.txt { font: 500 1rem/1.6 Pretendard, sans-serif; letter-spacing: -0.01em; color: var(--text); }
+.v4 .m-about h2.sec { margin-bottom: 0; }
+.v4 .m-about .ai { margin: 0; padding: 0.4706rem 0 0.2353rem 1.1765rem; }
+.v4 .m-about .kv .meta { margin: 0.2353rem 0 0.2353rem; }
+.v4 .m-about .ai li { margin: 0.2353rem 0; font: 500 1rem/1.5 Pretendard, sans-serif; letter-spacing: -0.01em; color: var(--text); }
+.v4 .m-about .flow { margin: 0.7059rem 0 0; font: 600 0.8824rem/1.6 Pretendard, sans-serif; color: var(--text-2); overflow-wrap: anywhere; }
+.v4 .m-about .kv .v a { color: inherit; text-decoration: underline; text-underline-offset: 0.1765rem; }
+.v4 .foot .link { font: inherit; }
+
 /* 크게 보기 (px ÷ 26) */
 html[data-big] .v4 .gap-h1 { margin-top: 0.7692rem; }
 html[data-big] .v4 .p-card, html[data-big] .v4 .opts.p-list { padding-left: 0.6923rem; padding-right: 0.6923rem; border-radius: 0.8462rem; }
@@ -456,6 +467,8 @@ html[data-big] .v4 .m-hero-chip { min-height: 1.5385rem; padding: 0.1154rem 0.46
 html[data-big] .v4 .m-hero .m-big { margin-top: 0.3846rem; font-size: 1.2308rem; }
 html[data-big] .v4 .m-hero-rows { margin-top: 0.5385rem; }
 html[data-big] .v4 .m-priv .kv .v { font-size: 0.8846rem; line-height: 1.5; }
+html[data-big] .v4 .m-about .lead, html[data-big] .v4 .m-about .kv .v.txt, html[data-big] .v4 .m-about .ai li { font-size: 0.8846rem; line-height: 1.5; }
+html[data-big] .v4 .m-about .flow { font-size: 0.7692rem; }
 html[data-big] .v4 .m-btns { margin-top: 0.5385rem; }
 html[data-big] .v4 .m-danger { margin-top: 0.7692rem; }
 html[data-big] .v4 .when { font-size: 0.7692rem; }
