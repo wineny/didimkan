@@ -472,3 +472,48 @@ html[data-big] .v4 .m-about .flow { font-size: 0.7692rem; }
 html[data-big] .v4 .m-btns { margin-top: 0.5385rem; }
 html[data-big] .v4 .m-danger { margin-top: 0.7692rem; }
 html[data-big] .v4 .when { font-size: 0.7692rem; }
+
+/* ── /intro 소개 자료(2026-10-18): 16:9 이미지 7장을 좌우로 넘긴다. 폰 틀(.frame)을 풀고 화면 전체를 쓴다.
+ * :has 를 못 읽는 브라우저에서는 폰 틀 안에서 그대로 넘겨 볼 수 있다. 크게 보기는 rem 이라 버튼·글자만 커진다. */
+.stage:has(> .frame > .deck) { display: block; padding: 0; min-height: 0; }
+.frame:has(> .deck) { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+.deck { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--surface); color: var(--text); letter-spacing: -0.01em; }
+.deck * { box-sizing: border-box; }
+.deck-top { flex: none; display: flex; align-items: center; gap: 0.7059rem; padding: 0.8235rem 1.4118rem; }
+.deck-logo { font: 800 1.2941rem/1 Pretendard, sans-serif; letter-spacing: -0.04em; color: var(--logo-ink); text-decoration: none; }
+.deck-logo i { font-style: normal; color: var(--terra); }
+.deck-label { font: 600 0.8824rem/1 Pretendard, sans-serif; color: var(--text-2); }
+.deck-links { margin-left: auto; display: flex; gap: 1.1765rem; }
+.deck-links a { font: 600 0.8824rem/1.3 Pretendard, sans-serif; color: var(--text-2); text-decoration: underline; text-underline-offset: 0.1765rem; white-space: nowrap; }
+.deck-view { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; padding: 0 1.4118rem; }
+.deck-fit { flex: 1 1 0; min-height: 0; container-type: size; display: flex; align-items: center; justify-content: center; }
+.deck-frame { width: min(100cqw, 100cqh * 16 / 9); aspect-ratio: 16 / 9; overflow: hidden; border-radius: 0.7059rem; background: var(--card); box-shadow: 0 0 0 1px var(--line), 0 1.1765rem 2.9412rem var(--shadow-float); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.deck-track { display: flex; height: 100%; }
+.deck[data-anim] .deck-track { transition: transform 0.35s ease; }
+.deck-slide { flex: 0 0 100%; height: 100%; margin: 0; }
+.deck-slide img { display: block; width: 100%; height: 100%; -webkit-user-drag: none; }
+.deck-turn { display: none; margin: 0.7059rem 0 0; text-align: center; font: 500 0.8824rem/1.4 Pretendard, sans-serif; color: var(--text-2); }
+.deck-bar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 0.7059rem; padding: 0.8235rem 1.4118rem 1.0588rem; }
+.deck-btn { min-width: 6.4706rem; height: 3rem; padding: 0 1.1765rem; border: 0; border-radius: 0.8235rem; background: var(--accent); color: var(--white); font: 700 1rem/1 Pretendard, sans-serif; letter-spacing: -0.02em; cursor: pointer; }
+.deck-btn:disabled { background: var(--line); color: var(--text-3); cursor: default; }
+.deck-mid { display: flex; flex-direction: column; align-items: center; gap: 0.2353rem; }
+.deck-dots { display: flex; }
+.deck-dot { display: grid; place-items: center; width: 1.6471rem; height: 1.6471rem; padding: 0; border: 0; background: none; cursor: pointer; }
+.deck-dot::before { content: ""; width: 0.5882rem; height: 0.5882rem; border-radius: 0.2941rem; background: var(--line-strong); transition: width 0.2s; }
+.deck-dot[aria-current]::before { width: 1.2941rem; background: var(--accent); }
+.deck-count { font: 700 0.8824rem/1 Pretendard, sans-serif; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.deck a:focus-visible, .deck button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .deck[data-anim] .deck-track, .deck-dot::before { transition: none; } }
+/* 좁은 폰(세로): 점 대신 「3 / 7」만, 가로로 돌리라는 안내. 낮은 화면(폰 가로): 위 줄을 빼고 그림을 키운다. */
+@media (max-width: 600px) {
+  .deck-top, .deck-view, .deck-bar { padding-left: 1.1765rem; padding-right: 1.1765rem; }
+  .deck-label, .deck-dots { display: none; }
+  .deck-btn { min-width: 0; }
+}
+@media (max-width: 600px) and (orientation: portrait) { .deck-turn { display: block; } }
+@media (max-height: 500px) and (orientation: landscape) {
+  .deck-top { display: none; }
+  .deck-view { padding-top: 0.5882rem; }
+  .deck-bar { padding-top: 0.4706rem; padding-bottom: 0.4706rem; }
+  .deck-btn { height: 2.4706rem; }
+}
