@@ -2,6 +2,14 @@
 
 흩어진 동네 공공 강좌를 한곳에 모아, 지금 어디까지 나갈 수 있는지에 맞춰 **다시 나가는 첫걸음** 강좌를 골라 주는 모바일 웹입니다.
 
+<!-- gitreels:start -->
+<p align="center">
+  <a href="https://gitreels.com/wineny/didimkan"><img src="https://gitreels.com/wineny/didimkan.webp" alt="wineny/didimkan in 15 seconds" width="100%"></a>
+  <br>
+  <a href="https://gitreels.com"><img src="https://gitreels.com/badge.svg" alt="Made with GitReels" height="24"></a>
+</p>
+<!-- gitreels:end -->
+
 - 공모전: 2026 AI·디지털 기반 사회문제 해결 챌린지
 - 일정: 서류 통과 10/7 · 상세기획서 11/3 · 본선 12월 초
 - 주 이용자: 퇴직·사별 뒤 나가던 자리가 끊긴 50~60대(청년 병행)
