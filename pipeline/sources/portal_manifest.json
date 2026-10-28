@@ -21,40 +21,33 @@
       "데이터 기준일자": "data_date"
     },
     "filters": {},
-    "notes": "링크형. 포털 첨부는 2018~2019 xlsx 라 쓰지 않고 구청 openData 페이지의 CSV 버튼을 받는다. 기준 2026-02-27, 예정갱신 2027-02-27. 수강료 단위가 '(분기)'/'(월)'로 섞여 있다.",
-    "link_resolve": "csv_button"
+    "notes": "링크형. 포털 첨부는 2018~2019 xlsx 라 쓰지 않고 구청 openData 페이지의 CSV 버튼을 받는다. 기준 2026-02-27, 예정갱신 2027-02-27. 수강료 단위가 '(분기)'/'(월)'로 섞여 있다. 구청 robots.txt 가 전체 Disallow 라 자동 수집은 막힌다. 2026-10-28 구청이 개선요청 회신으로 이 페이지의 CSV 를 안내해, 사람이 브라우저로 받은 파일을 sources/manual/ 에 두고 자동 수집이 막히면 그걸 쓴다(연 1회 갱신이라 2027-02 에 다시 받기).",
+    "link_resolve": "csv_button",
+    "manual_file": "seoul-mapo__15037729.csv",
+    "manual_fetched": "2026-10-28"
   },
   {
     "key": "seoul-gwangjin",
     "sido": "서울특별시",
     "sigungu": "광진구",
     "public_data_pk": "15037963",
-    "kind": "link",
-    "url": "https://www.gwangjin.go.kr/atdrc/pgm/jachi/pgmList.do?menuNo=1200077",
-    "encoding_hint": "utf-8",
+    "kind": "file",
+    "url": "https://www.data.go.kr/data/15037963/fileData.do",
+    "encoding_hint": "cp949",
     "has_apply_period": true,
     "default_is_dong_center": true,
     "column_map": {
-      "동명(분야)": "dong",
-      "프로그램명": "title",
+      "지역": "dong",
+      "강좌명": "title",
       "수강료": "fee_raw",
       "접수기간": "apply_range",
       "교육기간": "date_range",
       "운영시간": "day_time",
-      "모집정원": "capacity",
-      "장소": "venue"
+      "정원": "capacity",
+      "강의실": "venue"
     },
     "filters": {},
-    "notes": "링크형, 실시간 HTML 표(접수기간·교육기간·운영시간이 '일정' 칸에 합쳐져 있어 split_labels 로 나눔). robots.txt 가 Disallow:/ 라 수집은 robots 차단으로 기록되고 건너뜀(개방 요청 대상). 목록 페이지 넘기기 파라미터는 확인 안 됨(첫 페이지만 파싱). 포털 첨부 CSV 는 2024-04 기준이라 쓰지 않음.",
-    "link_resolve": "html_table",
-    "split_labels": {
-      "일정": [
-        "접수기간",
-        "교육기간",
-        "운영시간"
-      ]
-    },
-    "todo": "목록 페이징 방법 확인 필요"
+    "notes": "2026-10-28 구청이 개선요청(포털 오류신고)에 답해 포털 첨부를 2026년 CSV(119행, 접수기간·교육기간 포함)로 바꿨다. 예전엔 구청 HTML 표 링크형이었고 robots.txt 차단이라 못 받았다. API 는 구청 사정으로 없음."
   },
   {
     "key": "seoul-yangcheon",
@@ -377,12 +370,21 @@
     "encoding_hint": "cp949",
     "has_apply_period": false,
     "default_is_dong_center": true,
-    "column_map": {},
+    "column_map": {
+      "행정동": "dong",
+      "강좌명": "title",
+      "운영주기": "weekdays_raw",
+      "운영시간": "time_range",
+      "대상": "target_raw",
+      "회비": "fee_raw",
+      "장소": "venue",
+      "데이터기준일자": "data_date"
+    },
     "filters": {},
-    "notes": "링크형. 구청 CSV 가 봇 차단 JS(sabFingerPrint·sabSignature 쿠키 후 새로고침)를 먼저 돌려줌 → 수집은 bot_block 으로 기록하고 건너뜀. 포털 첨부 파일 없음. 헤더 확인 못 해 AUTO_ALIASES 사용.",
+    "notes": "링크형. 구청 CSV 가 봇 차단 JS(sabFingerPrint·sabSignature 쿠키 후 새로고침)를 먼저 돌려줘 자동 수집은 bot_block 으로 기록된다. 2026-10-28 구청 회신: 포털에 파일·API 로 올리지 않고 구청 페이지(program/page.html?mc=978)에서 동별 담당자가 수시로 고친다. 그 페이지 「csv저장」으로 사람이 받은 파일(기준 2026-10-22, 137행)을 sources/manual/ 에 두고 자동 수집이 막히면 그걸 쓴다. 수시 갱신이라 오래되면 다시 받기. 대상 칸에 <br> 이 들어 있다.",
     "link_resolve": "direct_csv",
-    "auto_map": true,
-    "todo": "봇 차단 쿠키 우회 불가(http 모듈이 쿠키 헤더를 안 받음). 헤더 확인 필요"
+    "manual_file": "daegu-jung__15006019.csv",
+    "manual_fetched": "2026-10-28"
   },
   {
     "key": "daejeon-seo",

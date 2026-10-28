@@ -23,6 +23,8 @@ from pipeline.sources.std import extract_dong
 SOURCE = "portal"
 MANIFEST_PATH = Path(__file__).resolve().parent / "portal_manifest.json"
 RAW_DIR = Path(__file__).resolve().parent.parent / "raw" / "portal"
+# 자동 수집이 막힌 링크형(robots·봇 차단)을 사람이 브라우저로 받아 둔 파일. 매니페스트 manual_file 로 가리킨다.
+MANUAL_DIR = Path(__file__).resolve().parent / "manual"
 
 DETAIL_PAGE = "https://www.data.go.kr/data/{pk}/fileData.do"
 FILE_DATASET_URL = "https://www.data.go.kr/data/{pk}/fileData.do"
@@ -89,6 +91,7 @@ MONTHLY_RE = re.compile(r"(?<!\d)1개월|매월|매달|/\s*월|\(월\)|(?<![개\
 PHONE_RE = re.compile(r"\d{2,4}-\d{3,4}-\d{4}")
 DETAIL_PLACE_RE = re.compile(r"(?:강의실|장소)\s*[:：]\s*([^,]+)")
 FREE_WORDS = re.compile(r"무료|무상")
+BR_RE = re.compile(r"<br\s*/?>", re.I)
 EUPMYEON_RE = re.compile(r"([가-힣]{1,6}[읍면])(?=[^가-힣]|주민|행정|사무|복지|$)")
 
 
@@ -249,6 +252,22 @@ def _download_api(entry: dict, failures: Failures) -> bytes:
     return json.dumps({"totalCnt": total, "items": items}, ensure_ascii=False).encode("utf-8")
 
 
+def _use_manual_file(entry: dict, raw_dir: Path, failures: Failures) -> Path | None:
+    """자동 수집이 막혔을 때 사람이 받아 둔 파일(manual_file)을 raw_dir 로 복사한다. 없으면 None."""
+    name = entry.get("manual_file")
+    if not name:
+        return None
+    src = MANUAL_DIR / name
+    if not src.is_file():
+        raise PortalError(f"{entry['key']}: manual_file 이 없음 ({src})")
+    failures.add(SOURCE, "manual_fallback", entry.get("url") or entry["key"],
+                 f"{entry['key']}: 자동 수집이 막혀 사람이 받은 파일을 씀 ({name}, {entry.get('manual_fetched')})")
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    out = raw_dir / name
+    out.write_bytes(src.read_bytes())
+    return out
+
+
 def download(entry: dict, raw_dir: Path = RAW_DIR, failures: Failures | None = None) -> list[Path]:
     """한 곳의 원본을 raw_dir 에 저장하고 파일 경로 목록을 돌려준다. 실패는 failures 에 적고 예외를 던진다."""
     f = failures if failures is not None else http.failures
@@ -266,10 +285,16 @@ def download(entry: dict, raw_dir: Path = RAW_DIR, failures: Failures | None = N
                 data = _fetch_dataset_file(fallback["public_data_pk"], f)
                 return [_save(raw_dir, key, fallback["public_data_pk"], data)]
         if kind == "link":
-            data, origin = _resolve_link(entry, f)
-            if _is_bot_block(data):
-                f.add(SOURCE, "bot_block", origin, "쿠키 요구 JS 응답(sabSignature)")
-                raise PortalError(f"{key}: 봇 차단 응답")
+            try:
+                data, origin = _resolve_link(entry, f)
+                if _is_bot_block(data):
+                    f.add(SOURCE, "bot_block", origin, "쿠키 요구 JS 응답(sabSignature)")
+                    raise PortalError(f"{key}: 봇 차단 응답")
+            except (http.RobotsBlocked, PortalError):
+                manual = _use_manual_file(entry, raw_dir, f)
+                if manual is None:
+                    raise
+                return [manual]
             return [_save(raw_dir, key, entry["public_data_pk"], data)]
         paths = []
         pks = [entry["public_data_pk"]] + [
@@ -370,7 +395,11 @@ def _read_csv_rows(data: bytes) -> list[dict]:
     import csv
     import io
     text = decode_bytes(data)[0]
-    return [{k: v for k, v in r.items() if k is not None} for r in csv.DictReader(io.StringIO(text, newline=""))]
+    rows = []
+    for r in csv.DictReader(io.StringIO(text, newline="")):
+        # 대구 중구처럼 칸 안에 <br> 이 글자 그대로 들어 있는 파일이 있다 → 줄바꿈으로
+        rows.append({k: BR_RE.sub("\n", v) if isinstance(v, str) else v for k, v in r.items() if k is not None})
+    return rows
 
 
 def _read_rows(path: Path, spec: dict) -> list[dict]:

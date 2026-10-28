@@ -64,6 +64,9 @@ def test_manifest_schema(manifest):
                 assert t in portal.TARGETS, (e["key"], t)
         if e["kind"] == "link":
             assert e["link_resolve"] in portal.LINK_RESOLVERS, e["key"]
+        if e.get("manual_file"):
+            assert e["kind"] == "link" and e.get("manual_fetched"), e["key"]
+            assert (portal.MANUAL_DIR / e["manual_file"]).is_file(), e["key"]
         if not e["column_map"]:
             assert e.get("auto_map") and e.get("todo"), f"{e['key']}: 헤더 미확인 표시가 필요"
 
@@ -137,8 +140,33 @@ def test_mapo(manifest):
     assert r["description"] is None and r["apply_start"] is None
 
 
-def test_gwangjin_apply_period(manifest):
-    rows = run(manifest, "seoul-gwangjin", "seoul-gwangjin__15037963.html")
+# 2026-10-28 전까지 광진은 구청 HTML 표 링크형이었다. html_table·split_labels 읽기는 이 옛 항목으로 지킨다.
+GWANGJIN_HTML_ENTRY = {
+    "key": "seoul-gwangjin", "sido": "서울특별시", "sigungu": "광진구", "public_data_pk": "15037963",
+    "kind": "link", "url": "https://www.gwangjin.go.kr/atdrc/pgm/jachi/pgmList.do?menuNo=1200077",
+    "default_is_dong_center": True, "link_resolve": "html_table",
+    "column_map": {"동명(분야)": "dong", "프로그램명": "title", "수강료": "fee_raw", "접수기간": "apply_range",
+                   "교육기간": "date_range", "운영시간": "day_time", "모집정원": "capacity", "장소": "venue"},
+    "filters": {}, "split_labels": {"일정": ["접수기간", "교육기간", "운영시간"]},
+}
+
+
+def test_gwangjin_csv_apply_period(manifest):
+    rows = run(manifest, "seoul-gwangjin", "seoul-gwangjin__15037963.csv")
+    assert len(rows) == 3
+    assert_course_shape(rows)
+    r = rows[0]
+    assert (r["title"], r["dong"], r["institution"]) == ("스포츠댄스", "구의2동", "광진구 구의2동 주민센터")
+    assert (r["apply_start"], r["apply_end"]) == ("2026-09-15", "2026-12-31")
+    assert (r["start_date"], r["end_date"]) == ("2026-10-01", "2026-12-31")
+    assert (r["weekdays"], r["start_time"], r["end_time"]) == ("화,목", "13:00", "14:00")
+    assert (r["capacity"], r["fee_won"], r["venue"]) == (20, 60000, "대강당(5층)")
+    assert r["source_url"] == "https://www.data.go.kr/data/15037963/fileData.do" and r["detail_url"] is None
+    assert rows[1]["capacity"] == 100 and rows[2]["weekdays"] == "월,수"
+
+
+def test_html_table_split_labels():
+    rows = portal.normalize(GWANGJIN_HTML_ENTRY, FIX / "seoul-gwangjin__15037963.html", collected_at=TODAY)
     assert len(rows) == 3
     assert_course_shape(rows)
     r = rows[0]
@@ -368,8 +396,8 @@ def test_download_link_kind_follows_select_link_url(monkeypatch, tmp_path, manif
     assert len(portal.normalize(e, paths[0], collected_at=TODAY)) == 2
 
 
-def test_download_link_html_table(monkeypatch, tmp_path, manifest):
-    e = entry(manifest, "seoul-gwangjin")
+def test_download_link_html_table(monkeypatch, tmp_path):
+    e = GWANGJIN_HTML_ENTRY
     html = (FIX / "seoul-gwangjin__15037963.html").read_bytes()
     install(monkeypatch, {
         "https://www.data.go.kr/tcs/dss/selectLinkUrl.do":
@@ -381,7 +409,7 @@ def test_download_link_html_table(monkeypatch, tmp_path, manifest):
 
 
 def test_download_link_bot_block_is_recorded(monkeypatch, tmp_path, manifest):
-    e = entry(manifest, "daegu-jung")
+    e = {k: v for k, v in entry(manifest, "daegu-jung").items() if k != "manual_file"}
     js = b"<html><script>document.cookie = 'sabSignature=ABC';\nwindow.location.reload();\n</script></html>"
     install(monkeypatch, {
         "https://www.data.go.kr/tcs/dss/selectLinkUrl.do": json.dumps({"linkUrl": e["url"]}).encode(),
@@ -425,6 +453,48 @@ def test_download_api_falls_back_to_file(monkeypatch, tmp_path, manifest):
     paths = portal.download(e, tmp_path, f)
     assert paths[0].name == "daejeon-seo__3072105.csv"
     assert "api_fallback_to_file" in {i["reason"] for i in f.items}
+
+
+def test_download_bot_block_falls_back_to_manual_file(monkeypatch, tmp_path, manifest):
+    e = entry(manifest, "daegu-jung")
+    js = b"<html><script>document.cookie = 'sabSignature=ABC';\nwindow.location.reload();\n</script></html>"
+    install(monkeypatch, {
+        "https://www.data.go.kr/tcs/dss/selectLinkUrl.do": json.dumps({"linkUrl": e["url"]}).encode(),
+        e["url"]: js,
+    })
+    f = Failures()
+    paths = portal.download(e, tmp_path, f)
+    assert [p.name for p in paths] == ["daegu-jung__15006019.csv"]
+    assert paths[0].read_bytes() == (portal.MANUAL_DIR / "daegu-jung__15006019.csv").read_bytes()
+    assert [i["reason"] for i in f.items] == ["bot_block", "manual_fallback"]
+
+
+def test_download_robots_falls_back_to_manual_file(monkeypatch, tmp_path, manifest):
+    e = entry(manifest, "seoul-mapo")
+
+    def blocked(url, **kw):
+        if "selectLinkUrl" in url:
+            return json.dumps({"linkUrl": e["url"]}).encode()
+        raise http.RobotsBlocked(url)
+
+    monkeypatch.setattr(http, "get", blocked)
+    f = Failures()
+    paths = portal.download(e, tmp_path, f)
+    assert [p.name for p in paths] == ["seoul-mapo__15037729.csv"]
+    assert "manual_fallback" in {i["reason"] for i in f.items}
+    assert len(portal.normalize(e, paths[0], collected_at=TODAY)) == 182
+
+
+def test_daegu_jung_manual_file(manifest):
+    e = entry(manifest, "daegu-jung")
+    rows = portal.normalize(e, portal.MANUAL_DIR / "daegu-jung__15006019.csv", collected_at=TODAY)
+    assert len(rows) == 126  # 빈 줄 11개는 제목이 없어 빠진다
+    assert_course_shape(rows)
+    r = rows[0]
+    assert (r["sido"], r["sigungu"], r["dong"]) == ("대구광역시", "중구", "남산2동")
+    assert (r["title"], r["weekdays"], r["start_time"], r["end_time"]) == ("가요 교실", "수", "13:00", "15:00")
+    assert (r["fee_won"], r["is_free"], r["data_date"]) == (0, 1, "2026-10-22")
+    assert "<br" not in r["target_raw"] and r["target_raw"] == "중구주민 (남산2동 주민우선)"
 
 
 # ---------------------------------------------------------------- collect_all
